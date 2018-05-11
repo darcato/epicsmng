@@ -18,7 +18,7 @@ function prepare_git_src {
     fi    
     git co -- . 
     if ! git co $3; then
-        echo "ERRORE GIT $3"
+        echo "ERRORE: Git version tag $3 not found."
         return 1
     fi
     #echo "checkout $3"
@@ -291,33 +291,54 @@ function compile_busy {
 
 
 
+# USAGE:
+# ./compile.sh module version [base]
+#   base - the module to be compiled
+#   rel - the version of the module
+#   bver - the base version, optional when compiling the base
 
 
 
-cmd=$1
-rel=$2
-bver=$3
+src="/opt/epics/Modules/v3.15.5/" #"/usr/src/epics/"
+base="$src/base/"
+#echo "BASE $base"
+support="$src/support"
 
+## check parameters are 3 or 2 if the first one is base
+if [ "$#" -ne 3 ]; then
+    if [ "$#" -ne 2 ] || [ "$1" != "base" ]; then
+        echo "Illegal number of parameters"
+        echo "USAGE: $0 module version [base]"
+        echo "     module   - the module to be compiled"
+        echo "     version  - the version of the module"
+        echo "     base     - the base version, optional when compiling the base"
+        exit 1
+    fi
+fi
 
-base="$(pwd)/bases/$bver"
-echo "BASE $base"
-support="$base/support"
+module=$1
+version=$2
+against=$3
+
+if [ ! -d $src ]; then
+    echo "Installing source folder"
+    if ! sudo install -d -o $(whoami) -g $(id -n -g $(whoami)) -m 775 $src; then
+        exit 1
+    fi
+fi
 
 if [ "$cmd" != "base" ]; then
     arch=$($base/startup/EpicsHostArch)
 fi
 
-if [ ! -d src ]; then
-    mkdir src
-fi
 
-case $cmd in 
+case $module in 
     base)
-        compile_base $2
+        compile_base $version
         ;;
 
     asyn)
-        compile_asyn $rel
+        compile_asyn $version
         ;;
 
 
