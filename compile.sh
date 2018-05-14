@@ -2,7 +2,7 @@
 
 
 function prepare_git_src {
-    cd src
+    cd $src
     if [ ! -d $2 ]; then
         echo "Cloning from repo"
         if ! git clone $1 $2; then
@@ -16,13 +16,13 @@ function prepare_git_src {
             return 1
         fi
     fi    
-    git co -- . 
-    if ! git co $3; then
+    git checkout -- . 
+    if ! git checkout $3; then
         echo "ERRORE: Git version tag $3 not found."
         return 1
     fi
     #echo "checkout $3"
-    cd ../..    
+    cd $top    
     return 0
 }
 
@@ -60,11 +60,11 @@ function set_dep {
 
 function compile_base {
     url="https://git.launchpad.net/epics-base"
-    dest="$(pwd)/bases/$1"
+    dest="$top/bases/$1"
     if ! prepare_git_src $url 'base' $1; then
         return 1
     fi
-    cd src/base
+    cd $src/base
     EPICS_HOST_ARCH=$(./startup/EpicsHostArch)
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
     make distclean
@@ -82,7 +82,7 @@ function compile_asyn {
     if ! prepare_git_src $url 'asyn' $1; then
         return 1
     fi
-    cd src/asyn
+    cd $src/asyn
     # per qualche ragione assurda non funziona INSTALL_LOCATION_APP
     set_config configure/CONFIG 'INSTALL_LOCATION' $dest
     set_release_par 'INSTALL_LOCATION_APP' $dest
@@ -299,26 +299,28 @@ function compile_busy {
 
 
 
-src="/opt/epics/Modules/v3.15.5/" #"/usr/src/epics/"
-base="$src/base/"
-#echo "BASE $base"
-support="$src/support"
+src="/usr/src/epics/"
 
 ## check parameters are 3 or 2 if the first one is base
 if [ "$#" -ne 3 ]; then
     if [ "$#" -ne 2 ] || [ "$1" != "base" ]; then
-        echo "Illegal number of parameters"
+        echo "Wrong number of parameters"
         echo "USAGE: $0 module version [base]"
-        echo "     module   - the module to be compiled"
-        echo "     version  - the version of the module"
-        echo "     base     - the base version, optional when compiling the base"
+        echo "     module       - the module to be compiled"
+        echo "     version      - the version of the module"
+        echo "     baseVersion  - the base version, optional when compiling the base"
         exit 1
     fi
 fi
 
 module=$1
 version=$2
-against=$3
+baseversion=$3
+
+top=$(pwd)
+base="$top/bases/$baseversion"
+echo "BASE $base"
+support="$base/support"
 
 if [ ! -d $src ]; then
     echo "Installing source folder"
@@ -327,7 +329,7 @@ if [ ! -d $src ]; then
     fi
 fi
 
-if [ "$cmd" != "base" ]; then
+if [ "$module" != "base" ]; then
     arch=$($base/startup/EpicsHostArch)
 fi
 
@@ -381,14 +383,6 @@ case $module in
     busy)
         compile_busy $rel
         ;;
-
-
-
-         
-
 esac
 
-
-
-
-
+echo "--- Completed ---"
