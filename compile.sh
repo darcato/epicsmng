@@ -319,7 +319,6 @@ baseversion=$3
 
 top=$(pwd)
 base="$top/bases/$baseversion"
-echo "BASE $base"
 support="$base/support"
 
 if [ ! -d $src ]; then
@@ -330,6 +329,10 @@ if [ ! -d $src ]; then
 fi
 
 if [ "$module" != "base" ]; then
+    if [ ! -d $base ]; then
+        echo "ERROR: Base folder $base not found. First compile base, then retry."
+        exit 1
+    fi
     arch=$($base/startup/EpicsHostArch)
 fi
 
