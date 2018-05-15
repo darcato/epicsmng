@@ -357,42 +357,63 @@ while IFS='=' read module version
 do
     if [[ $version ]]
     then
-        modules+=( "$(echo -e "${module}" | tr -d '[:space:]')" ) #add to array
-        versions+=( "$(echo -e "${version}" | tr -d '[:space:]')" ) #add to array
+        modules+=( "$(echo -e "${module}" | tr -d '[:space:]')" ) #add to array (removing whitespaces)
+        versions+=( "$(echo -e "${version}" | tr -d '[:space:]')" ) #add to array (removing whitespaces)
         echo "  $module - $version"
     fi
 done < "$tmpfile"
 rm "$tmpfile"
 
-for i in "${!modules[@]}"; do     
-    echo "${modules[$i]}: ${versions[$i]}"
-done
 
-exit 0
+echo ${modules[0]}
+if [ ${modules[0]} != "base" ] && [ ${modules[0]} != "Base" ] && [ ${modules[0]} != "BASE" ]; then
+    echo "ERROR: base must be the first module in the configuration"
+    exit 0
+fi
 
-module=$1
-version=$2
-baseversion=$3
+#where to install binaries
+modulespath="$top/modules/"
+target="$modulespath/$confname"
 
-top=$(pwd)
-modules="$top/modules"
-base="$top/modules/$baseversion"
-
-
+#create source folder if not present
 if [ ! -d $src ]; then
     echo "Installing source folder"
     if ! sudo install -d -o $(whoami) -g $(id -n -g $(whoami)) -m 775 $src; then
+        echo "Cannot create source folder $src"
         exit 1
     fi
 fi
 
-if [ "$module" != "base" ]; then
-    if [ ! -d $base ]; then
-        echo "ERROR: Base folder $base not found. First compile base, then retry."
+#create modules folder if not present
+if [ ! -d $modulespath ]; then
+    if ! mkdir $modulespath; then
+        echo "Cannot create modules folder $modulespath"
         exit 1
     fi
-    arch=$($base/startup/EpicsHostArch)
 fi
+
+#create configuration folder if not present
+if [ ! -d $target ]; then
+    if ! mkdir $target; then
+        echo "Cannot create configuration folder $target"
+        exit 1
+    fi
+fi
+
+#iterate on arrays and compile corresponding module
+for i in "${!modules[@]}"; do     
+    echo "\n Compiling ${modules[$i]}:${versions[$i]}"
+    if ! compile_"${modules[i]}" ${versions[$i]}; then     #portare in minuscolo il comando
+        echo "ERROR while compiling ${modules[$i]}:${versions[$i]}"
+        exit 1
+    fi
+done
+
+echo "--- Completed ---"
+
+exit 0
+
+arch=$($base/startup/EpicsHostArch)
 
 
 case $module in
