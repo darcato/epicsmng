@@ -351,19 +351,21 @@ echo " Configuration $confname"
 #parse config file
 tmpfile=$(mktemp)  #create temporary file
 grep -o '^[^#]*' "$configfile" > "$tmpfile"  #a copy without comments
-declare -A modules
+declare -a modules #an array to store found modules
+declare -a versions #an array to store found versions
 while IFS='=' read module version
 do
     if [[ $version ]]
     then
-        modules+=( ["$module"]="$version" )
+        modules+=( "$(echo -e "${module}" | tr -d '[:space:]')" ) #add to array
+        versions+=( "$(echo -e "${version}" | tr -d '[:space:]')" ) #add to array
         echo "  $module - $version"
     fi
 done < "$tmpfile"
 rm "$tmpfile"
 
-for module in "${!modules[@]}"; do 
-    echo "$module - ${modules[$module]}"; 
+for i in "${!modules[@]}"; do     
+    echo "${modules[$i]}: ${versions[$i]}"
 done
 
 exit 0
