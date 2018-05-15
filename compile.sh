@@ -1,5 +1,6 @@
 #!/bin/bash
 
+asyn_requires="base "
 
 function prepare_git_src {
     cd $src
@@ -96,13 +97,13 @@ function compile_asyn {
 
 function compile_gensub {
     echo "Compiling gensub $1 as support for base $2."
-    base="$(pwd)/bases/$2"
-    support="$base/support"
+    #base="$(pwd)/bases/$2"
+    #support="$base/support"
     dest="$support/gensub/$1"
 
     fname="genSubV$1.tar.gz"
-    mkdir -p src/gensub
-    cd src/gensub
+    mkdir -p $src/gensub
+    cd $src/gensub
     if [ -d $1 ]; then
         echo "folder exists"
         cd $1
@@ -119,12 +120,16 @@ function compile_gensub {
         tar zxvf $fname --strip-components=1 -C $1
         cd $1 
     fi
-    EPICS_HOST_ARCH=$(src/epics-base/startup/EpicsHostArch)
-    sed -i -e "s/^#INSTALL_LOCATION_APP.*/INSTALL_LOCATION_APP=$(echo $dest | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    sed -i -e "s/EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    sed -i -e "s/^\(CROSS_COMP.*\)/#\1/" configure/CONFIG    
+    #EPICS_HOST_ARCH=$(src/epics-base/startup/EpicsHostArch)
+    #sed -i -e "s/^#INSTALL_LOCATION_APP.*/INSTALL_LOCATION_APP=$(echo $dest | sed -e 's/\//\\\//g')/" configure/RELEASE    
+    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
+    #sed -i -e "s/EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
+    set_release_par 'EPICS_BASE' $base
+    #sed -i -e "s/^\(CROSS_COMP.*\)/#\1/" configure/CONFIG    
+    disable_config configure/CONFIG 'CROSS_COMP'
+    make distclean
     make
-    rm -rf $1
+    #rm -rf $1
 };
 
 function compile_cyusbdevsup {
@@ -292,34 +297,85 @@ function compile_busy {
 
 
 # USAGE:
-# ./compile.sh module version [base]
-#   base - the module to be compiled
-#   rel - the version of the module
-#   bver - the base version, optional when compiling the base
+# ./compile.sh [-C <path>] configuration
+#      configuration - a config file describing the epics modules to be installed
 
 
 
 src="/usr/src/epics/"
+top="$(pwd)"  #top default path is "."
 
-## check parameters are 3 or 2 if the first one is base
-if [ "$#" -ne 3 ]; then
-    if [ "$#" -ne 2 ] || [ "$1" != "base" ]; then
-        echo "Wrong number of parameters"
-        echo "USAGE: $0 module version [base]"
-        echo "     module       - the module to be compiled"
-        echo "     version      - the version of the module"
-        echo "     baseVersion  - the base version, optional when compiling the base"
-        exit 1
-    fi
+usage() { 
+    echo "USAGE: $0 [-C <path>] configuration"
+    echo "     configuration - a config file describing the epics modules to be installed"
+    exit 1; 
+}
+
+# parse optional argument [-C <top>]
+while getopts ":C:" o; do
+    case "${o}" in
+        C)
+            top="$(realpath ${OPTARG})"  #save absolute path in top
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift "$((OPTIND-1))"
+
+# if the supplied path is an empty string, error
+if [ -z "$top" ]; then
+    usage
 fi
+
+# the first non-optional parameter must be the config file
+if [ "$#" -ne 1 ]; then
+    echo "Wrong number of parameters"
+    usage
+fi
+
+configfile="$1"
+
+# if I cannot read it (file not present or unreadable) error
+if [ ! -w "$configfile" ]; then
+    echo "Cannot read file $configfile"
+    exit 1
+fi
+
+#echo configuration name
+confname="$(basename -- "$configfile")"
+confname="${confname%.*}"
+echo " Configuration $confname"
+
+#parse config file
+tmpfile=$(mktemp)  #create temporary file
+grep -o '^[^#]*' "$configfile" > "$tmpfile"  #a copy without comments
+declare -A modules
+while IFS='=' read module version
+do
+    if [[ $version ]]
+    then
+        modules+=( ["$module"]="$version" )
+        echo "  $module - $version"
+    fi
+done < "$tmpfile"
+rm "$tmpfile"
+
+for module in "${!modules[@]}"; do 
+    echo "$module - ${modules[$module]}"; 
+done
+
+exit 0
 
 module=$1
 version=$2
 baseversion=$3
 
 top=$(pwd)
-base="$top/bases/$baseversion"
-support="$base/support"
+modules="$top/modules"
+base="$top/modules/$baseversion"
+
 
 if [ ! -d $src ]; then
     echo "Installing source folder"
@@ -337,7 +393,7 @@ if [ "$module" != "base" ]; then
 fi
 
 
-case $module in 
+case $module in
     base)
         compile_base $version
         ;;
@@ -348,43 +404,43 @@ case $module in
 
 
     gensub)
-        compile_gensub $@
+        compile_gensub $version
         ;;
 
     motor)
-        compile_motor $rel   
+        compile_motor $version   
         ;;
 
     ipac)
-        compile_ipac $rel    
+        compile_ipac $version    
         ;;
 
     cyusbdevsup)
-        compile_cyusbdevsup $rel
+        compile_cyusbdevsup $version
         ;; 
     
     streamdevice)
-        compile_streamdevice $@
+        compile_streamdevice $version
         ;;
 
     calc)
-        compile_calc $rel
+        compile_calc $version
         ;;
 
     beckmotor)
-        compile_beckmotor $rel
+        compile_beckmotor $version
         ;;
 
     modbus)
-        compile_modbus $rel
+        compile_modbus $version
         ;;
 
     autosave)
-        compile_autosave $rel
+        compile_autosave $version
         ;;
     
     busy)
-        compile_busy $rel
+        compile_busy $version
         ;;
 esac
 
