@@ -3,26 +3,32 @@
 asyn_requires="base "
 
 function prepare_git_src {
+    remote="$1" #coincide with folder name
+    module="$2"
+    version="$3"
     cd $src
-    if [ ! -d $2 ]; then
+    #create folder with same name as module if not already present
+    if [ ! -d "$module" ]; then
         echo "Cloning from repo"
-        if ! git clone $1 $2; then
+        if ! git clone "$remote" "$module"; then
             return 1
         fi
-        cd $2
-    else
-        cd $2
+        cd "$module"
+    else  #if already present, simply fetch updates
+        cd "$module"
         echo "Updating from repo"
         if ! git fetch --all; then
-            return 1
+            echo "Git fetch failed"
+            #do not return error, may still find required version on local repo
         fi
     fi    
+    #discard local changes
     git checkout -- . 
-    if ! git checkout $3; then
-        echo "ERRORE: Git version tag $3 not found."
+    #checkout to the desired version
+    if ! git checkout "$version"; then
+        echo "ERRORE: Git version tag $version not found."
         return 1
     fi
-    #echo "checkout $3"
     cd $top    
     return 0
 }
