@@ -1,11 +1,28 @@
 #!/bin/bash
 
-asyn_requires="base "
+base_url="https://git.launchpad.net/epics-base"
+asyn_url='https://github.com/epics-modules/asyn.git'
+motort_url='https://github.com/epics-modules/motor'
+ipac_url="https://github.com/epics-modules/ipac.git"
+streamdevice_url="https://github.com/paulscherrerinstitute/StreamDevice.git"
+calc_url='https://github.com/epics-modules/calc.git'
+modbus_url="https://github.com/epics-modules/modbus.git"
+autosave_url="https://github.com/epics-modules/autosave.git"
+busy_url="https://github.com/epics-modules/busy.git"
+
+gensub_url="http://www.observatorysciences.co.uk/downloads/$fname"
+
+cyusbdevsup_url="git@baltig.infn.it:epicscs/cyusbdevsup.git"
+beckmotor_url="git@baltig.infn.it:epicscs/BeckMotor_EPICS.git"
+
+asyn_requires="base"
+asyn_optionals="sncseq ipac"
 
 function prepare_git_src {
     remote="$1" #coincide with folder name
     module="$2"
     version="$3"
+    
     cd $src
     #create folder with same name as module if not already present
     if [ ! -d "$module" ]; then
@@ -66,37 +83,77 @@ function set_dep {
 
 
 function compile_base {
-    url="https://git.launchpad.net/epics-base"
-    dest="$top/bases/$1"
-    if ! prepare_git_src $url 'base' $1; then
+    dest="$target/base-$1"
+    if ! prepare_git_src $base_url 'base' $1; then
         return 1
     fi
+    
     cd $src/base
-    EPICS_HOST_ARCH=$(./startup/EpicsHostArch)
+    export EPICS_HOST_ARCH=$(./startup/EpicsHostArch)
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
     make distclean
     make
     cp -r startup $dest/
-    cp -r config $dest/    
+    cp -r config $dest/
 };
 
 
-function compile_asyn {
-    url='https://github.com/epics-modules/asyn.git'
-    dest="$support/asyn/$1"
-    export EPICS_HOST_ARCH=$arch
-
-    if ! prepare_git_src $url 'asyn' $1; then
+function compile_asyn { 
+    dest="$target/asyn-$1"
+    
+    if ! prepare_git_src $asyn_url 'asyn' $1; then
         return 1
     fi
+    
     cd $src/asyn
     # per qualche ragione assurda non funziona INSTALL_LOCATION_APP
     set_config configure/CONFIG 'INSTALL_LOCATION' $dest
-    set_release_par 'INSTALL_LOCATION_APP' $dest
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'SUPPORT' $support
-    disable_release_par 'IPAC'
-    disable_release_par 'SNCSEQ'
+    #set_release_par 'INSTALL_LOCATION_APP' $dest
+    
+    for module in $asyn_requires; do
+        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
+        if [ "$module_up" == 'BASE' ]; then
+            module_up='EPICS_BASE'
+        fi
+        
+        indx=-1
+        for m in ${!modules[@]}; do
+            if [ ${modules[$m]} = $module ]; then
+                indx=$m
+                break
+            fi
+        done
+
+        if [ "$indx" = -1 ]; then 
+            echo "ERROR: asyn requires $module"
+            return 1
+        fi
+
+        #set path inside module release
+        set_release_par "$module_up" "$target/$module-${versions[$indx]}"
+    done
+    
+    for module in $asyn_optionals; do
+        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
+        if [ "$module_up" == 'BASE' ]; then
+            module_up='EPICS_BASE'
+        fi
+
+        indx=-1
+        for m in ${!modules[@]}; do
+            if [ ${modules[$m]} = $module ]; then
+                indx=$m
+                break
+            fi
+        done
+
+        if [ "$indx" = -1 ]; then 
+            disable_release_par "$module_up"
+        else
+            set_release_par "$module_up" "$target/$module-${versions[$indx]}"
+        fi
+    done
+
     make distclean
     make
 }; 
@@ -139,7 +196,6 @@ function compile_gensub {
 };
 
 function compile_cyusbdevsup {
-    url="git@baltig.infn.it:epicscs/cyusbdevsup.git"
     dest="$support/cyusbdevsup/$1"
     if ! prepare_git_src $url 'cyusbdevsup' $1; then
         return 1
@@ -159,7 +215,6 @@ function compile_cyusbdevsup {
 
 
 function compile_motor {
-    url='https://github.com/epics-modules/motor'
     dest="$support/motor/$1"
     if ! prepare_git_src $url 'motor' $1; then
         return 1
@@ -180,7 +235,7 @@ function compile_motor {
 
 
 function compile_ipac {
-    url="https://github.com/epics-modules/ipac.git"
+    
     dest="$support/ipac/$1"
     if ! prepare_git_src $url 'ipac' $1; then
         return 1
@@ -219,7 +274,7 @@ function compile_streamdevice {
 }
 
 function compile_calc {
-    url='https://github.com/epics-modules/calc.git'
+    
     dest="$support/calc/$1"
     if ! prepare_git_src $url 'calc' $1; then
         return 1
@@ -237,7 +292,7 @@ function compile_calc {
 
 
 function compile_beckmotor {
-    url="git@baltig.infn.it:epicscs/BeckMotor_EPICS.git"
+    
     dest="$support/beckmotor/$1"
     if ! prepare_git_src $url 'beckmotor' $1; then
         return 1
@@ -252,7 +307,7 @@ function compile_beckmotor {
 }
 
 function compile_modbus {
-    url="https://github.com/epics-modules/modbus.git"
+    
     dest="$support/modbus/$1"
     if ! prepare_git_src $url 'modbus' $1; then
         return 1
@@ -267,7 +322,7 @@ function compile_modbus {
 }
 
 function compile_autosave {
-    url="https://github.com/epics-modules/autosave.git"
+    
     dest="$support/autosave/$1"
     if ! prepare_git_src $url 'autosave' $1; then
         return 1
@@ -282,7 +337,7 @@ function compile_autosave {
 
 
 function compile_busy {
-    url="https://github.com/epics-modules/busy.git"
+    
     dest="$support/busy/$1"
     if ! prepare_git_src $url 'busy' $1; then
         return 1
@@ -363,8 +418,11 @@ while IFS='=' read module version
 do
     if [[ $version ]]
     then
-        modules+=( "$(echo -e "${module}" | tr -d '[:space:]')" ) #add to array (removing whitespaces)
-        versions+=( "$(echo -e "${version}" | tr -d '[:space:]')" ) #add to array (removing whitespaces)
+        module="$(echo -e "$module" | tr '[:upper:]' '[:lower:]')" #to lowercase
+        module="$(echo -e "$module" | tr -d '[:space:]')" #remove spaces
+        modules+=( "$module" ) #add to array
+        version="$(echo -e "$version" | tr -d '[:space:]')" #to lowercase
+        versions+=( "$version" ) #add to array
         echo "  $module - $version"
     fi
 done < "$tmpfile"
@@ -378,7 +436,7 @@ if [ ${modules[0]} != "base" ] && [ ${modules[0]} != "Base" ] && [ ${modules[0]}
 fi
 
 #where to install binaries
-modulespath="$top/modules/"
+modulespath="$top/modules"
 target="$modulespath/$confname"
 
 #create source folder if not present
@@ -419,58 +477,3 @@ echo "--- Completed ---"
 
 exit 0
 
-arch=$($base/startup/EpicsHostArch)
-
-
-case $module in
-    base)
-        compile_base $version
-        ;;
-
-    asyn)
-        compile_asyn $version
-        ;;
-
-
-    gensub)
-        compile_gensub $version
-        ;;
-
-    motor)
-        compile_motor $version   
-        ;;
-
-    ipac)
-        compile_ipac $version    
-        ;;
-
-    cyusbdevsup)
-        compile_cyusbdevsup $version
-        ;; 
-    
-    streamdevice)
-        compile_streamdevice $version
-        ;;
-
-    calc)
-        compile_calc $version
-        ;;
-
-    beckmotor)
-        compile_beckmotor $version
-        ;;
-
-    modbus)
-        compile_modbus $version
-        ;;
-
-    autosave)
-        compile_autosave $version
-        ;;
-    
-    busy)
-        compile_busy $version
-        ;;
-esac
-
-echo "--- Completed ---"
