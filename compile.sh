@@ -18,6 +18,11 @@ beckmotor_url="git@baltig.infn.it:epicscs/BeckMotor_EPICS.git"
 asyn_requires="base"
 asyn_optionals="sncseq ipac"
 
+cyusbdevsup_requires="base asyn"
+cyusbdevsup_optionals=""
+
+#execute here a configuration file which can ovverride default macro values
+
 function prepare_git_src {
     remote="$1" #coincide with folder name
     module="$2"
@@ -80,6 +85,66 @@ function set_dep {
     set_release_par $1 $support/$(echo $1 | tr '[:upper:]' '[:lower:]')/$2
 }
 
+function set_requires {
+    mod_to_build=$1
+
+    requires="_requires"
+    requires=$mod_to_build$requires  #something like asyn_requires
+    for module in ${!requires}; do   #expanded to $asyn_requires
+        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
+        if [ "$module_up" == 'BASE' ]; then
+            module_up='EPICS_BASE'
+        fi
+        
+        #search for the required module inside the modules to be installed  --TODO: change to installed ones
+        indx=-1
+        for m in ${!modules[@]}; do
+            if [ ${modules[$m]} = $module ]; then
+                indx=$m
+                break
+            fi
+        done
+
+        #if not found: error, it is required
+        if [ "$indx" = -1 ]; then 
+            echo "ERROR: $mod_to_build requires $module"
+            return 1
+        fi
+
+        #set path inside module release
+        set_release_par "$module_up" "$target/$module-${versions[$indx]}"
+    done
+}
+
+function set_optionals {
+    mod_to_build=$1
+
+    optionals="_optionals"
+    optionals=$mod_to_build$optionals  #something like asyn_optionals
+    for module in ${!optionals}}; do   #expanded to $asyn_optionals
+        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
+        if [ "$module_up" == 'BASE' ]; then
+            module_up='EPICS_BASE'
+        fi
+
+        #search for the required module inside the modules to be installed  --TODO: change to installed ones
+        indx=-1
+        for m in ${!modules[@]}; do
+            if [ ${modules[$m]} = $module ]; then
+                indx=$m
+                break
+            fi
+        done
+
+        #if not found, comment it in configure/RELEASE, else uncomment and set path
+        if [ "$indx" = -1 ]; then 
+            disable_release_par "$module_up"
+        else
+            set_release_par "$module_up" "$target/$module-${versions[$indx]}"
+        fi
+    done
+}
+
 
 
 function compile_base {
@@ -110,49 +175,8 @@ function compile_asyn {
     set_config configure/CONFIG 'INSTALL_LOCATION' $dest
     #set_release_par 'INSTALL_LOCATION_APP' $dest
     
-    for module in $asyn_requires; do
-        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
-        if [ "$module_up" == 'BASE' ]; then
-            module_up='EPICS_BASE'
-        fi
-        
-        indx=-1
-        for m in ${!modules[@]}; do
-            if [ ${modules[$m]} = $module ]; then
-                indx=$m
-                break
-            fi
-        done
-
-        if [ "$indx" = -1 ]; then 
-            echo "ERROR: asyn requires $module"
-            return 1
-        fi
-
-        #set path inside module release
-        set_release_par "$module_up" "$target/$module-${versions[$indx]}"
-    done
-    
-    for module in $asyn_optionals; do
-        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
-        if [ "$module_up" == 'BASE' ]; then
-            module_up='EPICS_BASE'
-        fi
-
-        indx=-1
-        for m in ${!modules[@]}; do
-            if [ ${modules[$m]} = $module ]; then
-                indx=$m
-                break
-            fi
-        done
-
-        if [ "$indx" = -1 ]; then 
-            disable_release_par "$module_up"
-        else
-            set_release_par "$module_up" "$target/$module-${versions[$indx]}"
-        fi
-    done
+    set_requires "asyn"
+    set_optionals "asyn"
 
     make distclean
     make
@@ -196,15 +220,19 @@ function compile_gensub {
 };
 
 function compile_cyusbdevsup {
-    dest="$support/cyusbdevsup/$1"
-    if ! prepare_git_src $url 'cyusbdevsup' $1; then
+    dest="$target/cyusbdevsup-$1"
+    if ! prepare_git_src $cyusbdevsup_url 'cyusbdevsup' $1; then
         return 1
     fi
 
-    cd src/cyusbdevsup
+    cd $src/cyusbdevsup
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'ASYN' "$support/asyn/R4-33"
+    
+    set_requires 'cyusbdevsup'
+    set_optionals 'cyusbdevsup'
+    
+    #set_release_par 'EPICS_BASE' $base
+    #set_release_par 'ASYN' "$support/asyn/R4-33"
         
     #sed -i -e "s/#INSTALL_LOCATION=.*/INSTALL_LOCATION=$(echo $dest | sed -e 's/\//\\\//g' )/" configure/CONFIG_SITE    
     #sed -i -e "s/^EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
@@ -466,7 +494,8 @@ fi
 
 #iterate on arrays and compile corresponding module
 for i in "${!modules[@]}"; do     
-    echo "\n Compiling ${modules[$i]}:${versions[$i]}"
+    echo "---"
+    echo "Compiling ${modules[$i]}:${versions[$i]}"
     if ! compile_"${modules[i]}" ${versions[$i]}; then     #portare in minuscolo il comando
         echo "ERROR while compiling ${modules[$i]}:${versions[$i]}"
         exit 1
