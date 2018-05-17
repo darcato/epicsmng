@@ -21,8 +21,32 @@ asyn_optionals="sncseq ipac"
 cyusbdevsup_requires="base asyn"
 cyusbdevsup_optionals=""
 
+motor_requires="base asyn"
+motor_optionals="busy ipac sncseq"
+
+ipac_requires="base"
+ipac_optionals=""
+
+calc_requires="base"
+calc_optionals="sscan sncseq"
+
+beckmotor_requires="base asyn motor"
+beckmotor_optionals=""
+
+modbus_requires="base asyn"
+modbus_optionals=""
+
+autosave_requires="base"
+autosave_optionals=""
+
+busy_requires="base autosave asyn"
+busy_optionals=""
+
 #execute here a configuration file which can ovverride default macro values
 
+#this creates the folder containing the source of a module
+#clones the repository
+#and checkout to the required version
 function prepare_git_src {
     remote="$1" #coincide with folder name
     module="$2"
@@ -31,14 +55,14 @@ function prepare_git_src {
     cd $src
     #create folder with same name as module if not already present
     if [ ! -d "$module" ]; then
-        echo "Cloning from repo"
+        echo "Cloning from repo $remote"
         if ! git clone "$remote" "$module"; then
             return 1
         fi
         cd "$module"
     else  #if already present, simply fetch updates
         cd "$module"
-        echo "Updating from repo"
+        echo "Updating from repo $remote"
         if ! git fetch --all; then
             echo "Git fetch failed"
             #do not return error, may still find required version on local repo
@@ -80,71 +104,94 @@ function disable_release_par {
     disable_config configure/RELEASE $1
 }
 
-function set_dep {
-    #module, release
-    set_release_par $1 $support/$(echo $1 | tr '[:upper:]' '[:lower:]')/$2
-}
-
+#sets configure/release with path of the required modules to compile a module
+#it reads the required ones from $module_requires variable
 function set_requires {
     mod_to_build=$1
 
     requires="_requires"
     requires=$mod_to_build$requires  #something like asyn_requires
-    for module in ${!requires}; do   #expanded to $asyn_requires
-        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
+    for m in ${!requires}; do   #expanded to $asyn_requires
+        echo "$mod_to_build requires $m"
+        module_up="$(echo -e "$m" | tr '[:lower:]' '[:upper:]')" #to uppercase
         if [ "$module_up" == 'BASE' ]; then
             module_up='EPICS_BASE'
         fi
         
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
-        for m in ${!modules[@]}; do
-            if [ ${modules[$m]} = $module ]; then
-                indx=$m
+        for i in ${!modules[@]}; do
+            if [ ${modules[$i]} = $m ]; then
+                indx=$i
                 break
             fi
         done
 
         #if not found: error, it is required
         if [ "$indx" = -1 ]; then 
-            echo "ERROR: $mod_to_build requires $module"
+            echo "ERROR: $mod_to_build requires $m"
             return 1
         fi
 
         #set path inside module release
-        set_release_par "$module_up" "$target/$module-${versions[$indx]}"
+        set_release_par "$module_up" "$target/$m-${versions[$indx]}"
     done
 }
 
+#sets configure/release with path of the optional modules to compile a module
+#it reads the optional ones from $module_optionals variable
 function set_optionals {
     mod_to_build=$1
 
     optionals="_optionals"
     optionals=$mod_to_build$optionals  #something like asyn_optionals
-    for module in ${!optionals}}; do   #expanded to $asyn_optionals
-        module_up="$(echo -e "$module" | tr '[:lower:]' '[:upper:]')" #to uppercase
+    for m in ${!optionals}; do   #expanded to $asyn_optionals
+        echo "$mod_to_build can link to $m"
+        module_up="$(echo -e "$m" | tr '[:lower:]' '[:upper:]')" #to uppercase
         if [ "$module_up" == 'BASE' ]; then
             module_up='EPICS_BASE'
         fi
 
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
-        for m in ${!modules[@]}; do
-            if [ ${modules[$m]} = $module ]; then
-                indx=$m
+        for i in ${!modules[@]}; do
+            if [ ${modules[$i]} = $m ]; then
+                indx=$i
                 break
             fi
         done
 
         #if not found, comment it in configure/RELEASE, else uncomment and set path
         if [ "$indx" = -1 ]; then 
+            echo "Commenting $module_up"
             disable_release_par "$module_up"
         else
-            set_release_par "$module_up" "$target/$module-${versions[$indx]}"
+            echo "Setting $module_up"
+            set_release_par "$module_up" "$target/$m-${versions[$indx]}"
         fi
     done
 }
 
+function _compile_git {
+    module="$1"
+    version="$2"
+    dest="$target/$module-$version"
+    
+    url="_url"
+    url="$module$url"
+    if ! prepare_git_src ${!url} "$module" "$version"; then
+        return 1
+    fi
+    
+    cd $src/$module
+    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
+    
+    set_requires "$module"
+    set_optionals "$module"
+
+    #make distclean
+    make
+}
 
 
 function compile_base {
@@ -156,30 +203,16 @@ function compile_base {
     cd $src/base
     export EPICS_HOST_ARCH=$(./startup/EpicsHostArch)
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    make distclean
+    #make distclean
     make
     cp -r startup $dest/
     cp -r config $dest/
 };
 
 
-function compile_asyn { 
-    dest="$target/asyn-$1"
-    
-    if ! prepare_git_src $asyn_url 'asyn' $1; then
-        return 1
-    fi
-    
-    cd $src/asyn
-    # per qualche ragione assurda non funziona INSTALL_LOCATION_APP
-    set_config configure/CONFIG 'INSTALL_LOCATION' $dest
-    #set_release_par 'INSTALL_LOCATION_APP' $dest
-    
-    set_requires "asyn"
-    set_optionals "asyn"
-
-    make distclean
-    make
+function compile_asyn {
+    version=$1 
+    _compile_git "asyn" "$version"
 }; 
 
 function compile_gensub {
@@ -219,65 +252,21 @@ function compile_gensub {
     #rm -rf $1
 };
 
-function compile_cyusbdevsup {
-    dest="$target/cyusbdevsup-$1"
-    if ! prepare_git_src $cyusbdevsup_url 'cyusbdevsup' $1; then
-        return 1
-    fi
-
-    cd $src/cyusbdevsup
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    
-    set_requires 'cyusbdevsup'
-    set_optionals 'cyusbdevsup'
-    
-    #set_release_par 'EPICS_BASE' $base
-    #set_release_par 'ASYN' "$support/asyn/R4-33"
-        
-    #sed -i -e "s/#INSTALL_LOCATION=.*/INSTALL_LOCATION=$(echo $dest | sed -e 's/\//\\\//g' )/" configure/CONFIG_SITE    
-    #sed -i -e "s/^EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    #sed -i -e "s/^ASYN.*/ASYN=$(echo $asyn | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    make distclean
-    make
+function compile_cyusbdevsup { 
+    version=$1 
+    _compile_git "asyn" "$version"
 };
 
 
 function compile_motor {
-    dest="$support/motor/$1"
-    if ! prepare_git_src $url 'motor' $1; then
-        return 1
-    fi
-    cd src/motor
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'ASYN' "$support/asyn/R4-33"
-    set_release_par 'SUPPORT' $support
-    set_dep 'BUSY' 'R1-7'
-    set_dep 'IPAC' '2.15'
-    disable_release_par 'SNCSEQ'
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-
-    make distclean
-    make
-
+    version=$1
+    _compile_git "motor" "$version"
 };
 
 
 function compile_ipac {
-    
-    dest="$support/ipac/$1"
-    if ! prepare_git_src $url 'ipac' $1; then
-        return 1
-    fi
-    cd src/ipac
-
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'SUPPORT' $support
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-
-#    sed -i -e "s/EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" config/RELEASE    
-#    echo "INSTALL_LOCATION_APP=$dest" >> config/RELEASE
-    make distclean
-    make
+    version=$1
+    _compile_git "ipac" "$version"
 }
 
 function compile_streamdevice {
@@ -302,83 +291,29 @@ function compile_streamdevice {
 }
 
 function compile_calc {
-    
-    dest="$support/calc/$1"
-    if ! prepare_git_src $url 'calc' $1; then
-        return 1
-    fi
-    cd src/calc
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'SUPPORT' $support
-    disable_release_par 'SSCAN'
-    disable_release_par 'SNCSEQ'
-    set_release_par 'INSTALL_LOCATION_APP' $dest    
-    make
-
+    version=$1
+    _compile_git "calc" "$version"
 }
 
-
-
 function compile_beckmotor {
-    
+    version=$1
+    _compile_git "beckmotor" "$version"
     dest="$support/beckmotor/$1"
-    if ! prepare_git_src $url 'beckmotor' $1; then
-        return 1
-    fi
-    cd src/beckmotor
-    set_release_par 'EPICS_BASE' $base
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    set_dep 'ASYN' 'R4-33'    
-    set_dep 'MOTOR' 'R6-10' 
-    make distclean
-    make 
 }
 
 function compile_modbus {
-    
-    dest="$support/modbus/$1"
-    if ! prepare_git_src $url 'modbus' $1; then
-        return 1
-    fi
-    cd src/modbus
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'SUPPORT' $support
-    set_dep 'ASYN' 'R4-33'
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    make distclean
-    make
+    version=$1
+    _compile_git "modbus" "$version"
 }
 
 function compile_autosave {
-    
-    dest="$support/autosave/$1"
-    if ! prepare_git_src $url 'autosave' $1; then
-        return 1
-    fi
-    cd src/autosave
-    set_release_par 'EPICS_BASE' $base
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    make distclean
-    make
+    version=$1
+    _compile_git "autosave" "$version"
 }
 
-
-
 function compile_busy {
-    
-    dest="$support/busy/$1"
-    if ! prepare_git_src $url 'busy' $1; then
-        return 1
-    fi
-    cd src/busy
-    set_release_par 'EPICS_BASE' $base
-    set_release_par 'SUPPORT' $support
-    set_dep 'AUTOSAVE' 'R5-8'
-    set_dep 'ASYN' 'R4-33'
-    disable_release_par 'BUSY'
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    make distclean
-    make
+    version=$1
+    _compile_git "busy" "$version"
 }
 
 
@@ -497,7 +432,7 @@ for i in "${!modules[@]}"; do
     echo "---"
     echo "Compiling ${modules[$i]}:${versions[$i]}"
     if ! compile_"${modules[i]}" ${versions[$i]}; then     #portare in minuscolo il comando
-        echo "ERROR while compiling ${modules[$i]}:${versions[$i]}"
+        echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
         exit 1
     fi
 done
