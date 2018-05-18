@@ -2,18 +2,19 @@
 
 base_url="https://git.launchpad.net/epics-base"
 asyn_url='https://github.com/epics-modules/asyn.git'
-motort_url='https://github.com/epics-modules/motor'
+motor_url='https://github.com/epics-modules/motor'
 ipac_url="https://github.com/epics-modules/ipac.git"
 streamdevice_url="https://github.com/paulscherrerinstitute/StreamDevice.git"
 calc_url='https://github.com/epics-modules/calc.git'
 modbus_url="https://github.com/epics-modules/modbus.git"
 autosave_url="https://github.com/epics-modules/autosave.git"
 busy_url="https://github.com/epics-modules/busy.git"
+sscan_url="https://github.com/epics-modules/sscan.git"
+beckmotor_url="https://github.com/darcato/beckMotor.git"
 
 gensub_url="http://www.observatorysciences.co.uk/downloads/$fname"
 
 cyusbdevsup_url="git@baltig.infn.it:epicscs/cyusbdevsup.git"
-beckmotor_url="git@baltig.infn.it:epicscs/BeckMotor_EPICS.git"
 
 asyn_requires="base"
 asyn_optionals="sncseq ipac"
@@ -41,6 +42,9 @@ autosave_optionals=""
 
 busy_requires="base autosave asyn"
 busy_optionals=""
+
+sscan_requires="base"
+sscan_optionals="sncseq"
 
 #execute here a configuration file which can ovverride default macro values
 
@@ -205,7 +209,9 @@ function compile_base {
     make distclean
     make
     cp -r startup $dest/
-    cp -r config $dest/
+    if [ -d config ]; then
+        cp -r config $dest/
+    fi
 };
 
 function compile_gensub {
@@ -262,8 +268,6 @@ function compile_streamdevice {
     sed -i -e "s/EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
     sed -i -e "s/^ASYN=.*/ASYN=$(echo $asyn | sed -e 's/\//\\\//g')/" configure/RELEASE    
     cd StreamDevice
-    
-
 }
 
 
