@@ -93,7 +93,6 @@ function disable_config {
     sed -i -e "s/\([ \t]*$2[ \t]*=.*\)/# \1/" $1
 }
 
-
 function set_release_par {
     #token, value
     set_config configure/RELEASE $1 $2
@@ -172,7 +171,7 @@ function set_optionals {
     done
 }
 
-function _compile_git {
+function compile_git {
     module="$1"
     version="$2"
     dest="$target/$module-$version"
@@ -186,13 +185,13 @@ function _compile_git {
     cd $src/$module
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
     
+    set_release_par "SUPPORT" $target
     set_requires "$module"
     set_optionals "$module"
 
-    #make distclean
+    make distclean
     make
 }
-
 
 function compile_base {
     dest="$target/base-$1"
@@ -203,17 +202,11 @@ function compile_base {
     cd $src/base
     export EPICS_HOST_ARCH=$(./startup/EpicsHostArch)
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    #make distclean
+    make distclean
     make
     cp -r startup $dest/
     cp -r config $dest/
 };
-
-
-function compile_asyn {
-    version=$1 
-    _compile_git "asyn" "$version"
-}; 
 
 function compile_gensub {
     echo "Compiling gensub $1 as support for base $2."
@@ -252,23 +245,6 @@ function compile_gensub {
     #rm -rf $1
 };
 
-function compile_cyusbdevsup { 
-    version=$1 
-    _compile_git "asyn" "$version"
-};
-
-
-function compile_motor {
-    version=$1
-    _compile_git "motor" "$version"
-};
-
-
-function compile_ipac {
-    version=$1
-    _compile_git "ipac" "$version"
-}
-
 function compile_streamdevice {
     base="$(pwd)/bases/$2"
     support="$base/support"
@@ -289,34 +265,6 @@ function compile_streamdevice {
     
 
 }
-
-function compile_calc {
-    version=$1
-    _compile_git "calc" "$version"
-}
-
-function compile_beckmotor {
-    version=$1
-    _compile_git "beckmotor" "$version"
-    dest="$support/beckmotor/$1"
-}
-
-function compile_modbus {
-    version=$1
-    _compile_git "modbus" "$version"
-}
-
-function compile_autosave {
-    version=$1
-    _compile_git "autosave" "$version"
-}
-
-function compile_busy {
-    version=$1
-    _compile_git "busy" "$version"
-}
-
-
 
 
 
@@ -431,13 +379,19 @@ fi
 for i in "${!modules[@]}"; do     
     echo "---"
     echo "Compiling ${modules[$i]}:${versions[$i]}"
-    if ! compile_"${modules[i]}" ${versions[$i]}; then     #portare in minuscolo il comando
-        echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
-        exit 1
+    
+    # if a special function is declared to compile this module, use it
+    if [ "$(type -t compile_"${modules[i]}")" = "function" ]; then
+        if ! compile_"${modules[i]}" ${versions[$i]}; then
+            echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
+            exit 1
+        fi
+    else #else use the standard function to compile modules from git
+        if ! compile_git "${modules[i]}" ${versions[$i]}; then
+            echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
+            exit 1
+        fi
     fi
 done
 
 echo "--- Completed ---"
-
-exit 0
-
