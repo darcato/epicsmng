@@ -14,7 +14,7 @@ beckmotor_url="https://github.com/darcato/beckMotor.git"
 
 gensub_url="http://www.observatorysciences.co.uk/downloads/$fname"
 
-cyusbdevsup_url="git@baltig.infn.it:epicscs/cyusbdevsup.git"
+cyusbdevsup_url="https://baltig.infn.it/epicscs/cyusbdevsup.git"
 
 asyn_requires="base"
 asyn_optionals="sncseq ipac"
@@ -178,6 +178,7 @@ function set_optionals {
 function compile_git {
     module="$1"
     version="$2"
+    #check if version == "_latest_" then version="$(git describe --abbrev=0 --tags)"
     dest="$target/$module-$version"
     
     url="_url"
@@ -189,33 +190,36 @@ function compile_git {
     cd $src/$module
     set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
     
+    #set file configure release with target, the required modules and the optional ones
     set_release_par "SUPPORT" $target
-    set_requires "$module"
+    if ! set_requires "$module"; then
+        echo "Unable to satisfy all requirements"
+        return 1
+    fi
     set_optionals "$module"
 
-    make distclean
+    #make distclean
     make
 }
 
+
+##### Module Specific Compile Functions #####
+
 function compile_base {
-    dest="$target/base-$1"
-    if ! prepare_git_src $base_url 'base' $1; then
-        return 1
-    fi
-    
-    cd $src/base
-    export EPICS_HOST_ARCH=$(./startup/EpicsHostArch)
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    make distclean
-    make
+    version=$1
+    dest="$target/base-$version"
+    compile_git "base" $version
+
     cp -r startup $dest/
     if [ -d config ]; then
         cp -r config $dest/
     fi
+
+    export EPICS_HOST_ARCH="$($dest/startup/EpicsHostArch)"
+    export base="$dest"
 };
 
 function compile_gensub {
-    echo "Compiling gensub $1 as support for base $2."
     #base="$(pwd)/bases/$2"
     #support="$base/support"
     dest="$support/gensub/$1"
@@ -252,22 +256,46 @@ function compile_gensub {
 };
 
 function compile_streamdevice {
-    base="$(pwd)/bases/$2"
-    support="$base/support"
-    dest="$support/ipac/$1"
-    arch=$($base/startup/EpicsHostArch)
-    asyn="\$(SUPPORT)/$3"
-    cd src
-    if [ ! -d StreamDevice ]; then
-        mkdir StreamDevice;
-        cd StreamDevice
-        $base/bin/$arch/makeBaseApp.pl -t support empty
-        git clone https://github.com/paulscherrerinstitute/StreamDevice.git
+    module="streamdevice"
+    version="$1"
+    dest="$target/$module-$version"
+    
+    cd $src
+    if [ ! -d "$module" ]; then
+        mkdir "$module";
+        cd $module
+        $base/bin/$EPICS_HOST_ARCH/makeBaseApp.pl -t support empty
+        git clone https://github.com/paulscherrerinstitute/StreamDevice.git $module
+        cd $module
+    else
+        cd "$module/$module"
+        echo "Updating from repo $remote"
+        if ! git fetch --all; then
+            echo "Git fetch failed"
+            #do not return error, may still find required version on local repo
+        fi
+    fi    
+    #discard local changes
+    git checkout -- . 
+    #checkout to the desired version
+    if ! git checkout "$version"; then
+        echo "ERRORE: Git version tag $version not found."
+        return 1
     fi
-    cd StreamDevice
-    sed -i -e "s/EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    sed -i -e "s/^ASYN=.*/ASYN=$(echo $asyn | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    cd StreamDevice
+    
+    cd $src/$module
+    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
+    
+    #set file configure release with target, the required modules and the optional ones
+    #set_release_par "SUPPORT" $target
+    if ! set_requires "$module"; then
+        echo "Unable to satisfy all requirements"
+        return 1
+    fi
+    set_optionals "$module"
+
+    #make distclean
+    make -C $module --makefile Makefile
 }
 
 
@@ -336,7 +364,7 @@ do
         module="$(echo -e "$module" | tr '[:upper:]' '[:lower:]')" #to lowercase
         module="$(echo -e "$module" | tr -d '[:space:]')" #remove spaces
         modules+=( "$module" ) #add to array
-        version="$(echo -e "$version" | tr -d '[:space:]')" #to lowercase
+        version="$(echo -e "$version" | tr -d '[:space:]')" #to lowercase        
         versions+=( "$version" ) #add to array
         echo "  $module - $version"
     fi
