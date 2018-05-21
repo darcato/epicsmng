@@ -1,5 +1,7 @@
 #!/bin/bash
 
+src="/usr/src/epics/"
+
 base_url="https://git.launchpad.net/epics-base"
 asyn_url='https://github.com/epics-modules/asyn.git'
 motor_url='https://github.com/epics-modules/motor'
@@ -61,6 +63,7 @@ function prepare_git_src {
     if [ ! -d "$module" ]; then
         echo "Cloning from repo $remote"
         if ! git clone "$remote" "$module"; then
+            echo "ERRORE: Git clone failed. Check connection."
             return 1
         fi
         cd "$module"
@@ -77,6 +80,8 @@ function prepare_git_src {
     #checkout to the desired version
     if ! git checkout "$version"; then
         echo "ERRORE: Git version tag $version not found."
+        echo "Example of available versions are:"
+        echo "$(git tag --sort=-version:refname | head -n 15)"
         return 1
     fi
     cd $top    
@@ -178,7 +183,12 @@ function set_optionals {
 function compile_git {
     module="$1"
     version="$2"
-    #check if version == "_latest_" then version="$(git describe --abbrev=0 --tags)"
+    shift 2 #remove $1 and $2 from $@
+    makeargs="$@"
+    # _version_ is a special string to go to latest git release
+    if [ $version = "_latest_" ]; then 
+        version="$(git describe --abbrev=0 --tags)"
+    fi
     dest="$target/$module-$version"
     
     url="_url"
@@ -198,8 +208,7 @@ function compile_git {
     fi
     set_optionals "$module"
 
-    #make distclean
-    make
+    make $makeargs
 }
 
 
@@ -207,8 +216,12 @@ function compile_git {
 
 function compile_base {
     version=$1
+    shift 1 #remove $1 from $@
+    makeargs="$@"
     dest="$target/base-$version"
-    compile_git "base" $version
+    if ! compile_git "base" "$version" "$makeargs"; then
+        return 1
+    fi
 
     cp -r startup $dest/
     if [ -d config ]; then
@@ -258,6 +271,8 @@ function compile_gensub {
 function compile_streamdevice {
     module="streamdevice"
     version="$1"
+    shift 1 #remove $1 from $@
+    makeargs="$@"
     dest="$target/$module-$version"
     
     cd $src
@@ -265,7 +280,10 @@ function compile_streamdevice {
         mkdir "$module";
         cd $module
         $base/bin/$EPICS_HOST_ARCH/makeBaseApp.pl -t support empty
-        git clone https://github.com/paulscherrerinstitute/StreamDevice.git $module
+        if ! git clone "$streamdevice_url" "$module"; then
+            echo "ERRORE: Git clone failed. Check connection."
+            return 1
+        fi
         cd $module
     else
         cd "$module/$module"
@@ -294,8 +312,7 @@ function compile_streamdevice {
     fi
     set_optionals "$module"
 
-    #make distclean
-    make -C $module --makefile Makefile
+    make -C $module --makefile Makefile $makeargs
 }
 
 
@@ -304,9 +321,6 @@ function compile_streamdevice {
 # ./compile.sh [-C <path>] configuration
 #      configuration - a config file describing the epics modules to be installed
 
-
-
-src="/usr/src/epics/"
 top="$(pwd)"  #top default path is "."
 
 usage() { 
@@ -334,12 +348,14 @@ if [ -z "$top" ]; then
 fi
 
 # the first non-optional parameter must be the config file
-if [ "$#" -ne 1 ]; then
-    echo "Wrong number of parameters"
-    usage
-fi
+#if [ "$#" -ne 1 ]; then
+#    echo "Wrong number of parameters"
+#    usage
+#fi
 
 configfile="$1"
+shift 1 #remove $1 from $@
+makeargs="$@"
 
 # if I cannot read it (file not present or unreadable) error
 if [ ! -w "$configfile" ]; then
@@ -410,16 +426,17 @@ fi
 #iterate on arrays and compile corresponding module
 for i in "${!modules[@]}"; do     
     echo "---"
-    echo "Compiling ${modules[$i]}:${versions[$i]}"
+    echo "Compiling ${modules[$i]}-${versions[$i]}"
+    echo "args $makeargs"
     
     # if a special function is declared to compile this module, use it
     if [ "$(type -t compile_"${modules[i]}")" = "function" ]; then
-        if ! compile_"${modules[i]}" ${versions[$i]}; then
+        if ! compile_"${modules[i]}" "${versions[$i]}" "$makeargs"; then
             echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
             exit 1
         fi
     else #else use the standard function to compile modules from git
-        if ! compile_git "${modules[i]}" ${versions[$i]}; then
+        if ! compile_git "${modules[i]}" "${versions[$i]}" "$makeargs"; then
             echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
             exit 1
         fi
