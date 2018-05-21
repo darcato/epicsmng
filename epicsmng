@@ -183,8 +183,6 @@ function set_optionals {
 function compile_git {
     module="$1"
     version="$2"
-    shift 2 #remove $1 and $2 from $@
-    makeargs="$@"
     # _version_ is a special string to go to latest git release
     if [ $version = "_latest_" ]; then 
         version="$(git describe --abbrev=0 --tags)"
@@ -208,7 +206,7 @@ function compile_git {
     fi
     set_optionals "$module"
 
-    make $makeargs
+    make
 }
 
 
@@ -216,10 +214,8 @@ function compile_git {
 
 function compile_base {
     version=$1
-    shift 1 #remove $1 from $@
-    makeargs="$@"
     dest="$target/base-$version"
-    if ! compile_git "base" "$version" "$makeargs"; then
+    if ! compile_git "base" "$version"; then
         return 1
     fi
 
@@ -271,8 +267,6 @@ function compile_gensub {
 function compile_streamdevice {
     module="streamdevice"
     version="$1"
-    shift 1 #remove $1 from $@
-    makeargs="$@"
     dest="$target/$module-$version"
     
     cd $src
@@ -312,7 +306,7 @@ function compile_streamdevice {
     fi
     set_optionals "$module"
 
-    make -C $module --makefile Makefile $makeargs
+    make -C $module --makefile Makefile
 }
 
 
@@ -348,14 +342,12 @@ if [ -z "$top" ]; then
 fi
 
 # the first non-optional parameter must be the config file
-#if [ "$#" -ne 1 ]; then
-#    echo "Wrong number of parameters"
-#    usage
-#fi
+if [ "$#" -ne 1 ]; then
+    echo "Wrong number of parameters"
+    usage
+fi
 
 configfile="$1"
-shift 1 #remove $1 from $@
-makeargs="$@"
 
 # if I cannot read it (file not present or unreadable) error
 if [ ! -w "$configfile" ]; then
@@ -427,16 +419,15 @@ fi
 for i in "${!modules[@]}"; do     
     echo "---"
     echo "Compiling ${modules[$i]}-${versions[$i]}"
-    echo "args $makeargs"
     
     # if a special function is declared to compile this module, use it
     if [ "$(type -t compile_"${modules[i]}")" = "function" ]; then
-        if ! compile_"${modules[i]}" "${versions[$i]}" "$makeargs"; then
+        if ! compile_"${modules[i]}" "${versions[$i]}"; then
             echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
             exit 1
         fi
     else #else use the standard function to compile modules from git
-        if ! compile_git "${modules[i]}" "${versions[$i]}" "$makeargs"; then
+        if ! compile_git "${modules[i]}" "${versions[$i]}"; then
             echo "ERROR while compiling ${modules[$i]}-${versions[$i]}"
             exit 1
         fi
