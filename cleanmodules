@@ -1,0 +1,50 @@
+#!/bin/bash
+
+top="$(pwd)"  #top default path is "."
+
+usage() { 
+    echo "USAGE: $0 [-C <path>] configuration"
+    echo "     configuration - a config file describing the epics modules to be removed"
+    exit 1; 
+}
+
+# parse optional argument [-C <top>]
+while getopts ":C:" o; do
+    case "${o}" in
+        C)
+            top="$(realpath ${OPTARG})"  #save absolute path in top
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+shift "$((OPTIND-1))"
+
+# if the supplied path is an empty string, error
+if [ -z "$top" ]; then
+    usage
+fi
+
+# the first non-optional parameter must be the config file
+if [ "$#" -ne 1 ]; then
+    echo "Wrong number of parameters"
+    usage
+fi
+
+configfile="$1"
+confname="$(basename -- "$configfile")"
+confname="${confname%.*}"
+dir=$top/modules/$confname
+
+# if I cannot read it (file not present or unreadable) error
+if [ ! -d "$dir" ]; then
+    echo "Cannot find installed configurations"
+    exit 1
+else
+    echo "Removing $dir"
+    rm -rf $top/modules/$confname
+fi
+
+
+
