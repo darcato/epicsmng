@@ -206,7 +206,7 @@ function compile_git {
     fi
     set_optionals "$module"
 
-    make
+    make > $verbose
 }
 
 
@@ -260,7 +260,7 @@ function compile_gensub {
     #sed -i -e "s/^\(CROSS_COMP.*\)/#\1/" configure/CONFIG    
     disable_config configure/CONFIG 'CROSS_COMP'
     make distclean
-    make
+    make > $verbose
     #rm -rf $1
 };
 
@@ -306,7 +306,7 @@ function compile_streamdevice {
     fi
     set_optionals "$module"
 
-    make -C $module --makefile Makefile
+    make -C $module --makefile Makefile > $verbose
 }
 
 
@@ -316,23 +316,27 @@ function compile_streamdevice {
 #      configuration - a config file describing the epics modules to be installed
 
 top="$(pwd)"  #top default path is "."
+verbose="/dev/null"  #verbosity: default=non verbose
 
 usage() { 
-    echo "USAGE: $0 [-C <path>] [-j <n>] configuration"
+    echo "USAGE: $0 [-C <path>] [-j <n>] [-v] configuration"
     echo "     configuration - a config file describing the epics modules to be installed"
     echo "     -C <path>     - where to install modules"
     echo "     -j <n>        - parallel jobs on make"
+    echo "     -v            - enable verbose mode"
     exit 1; 
 }
 
 # parse optional argument [-C <top>]
-while getopts ":C:j:" o; do
+while getopts ":C:j:v" o; do
     case "${o}" in
         C)
             top="$(realpath ${OPTARG})"  #save absolute path in top
             ;;
         j)  export MAKEOPTS='-j${OPTARG}'
             export MAKEFLAGS='-j${OPTARG}'
+            ;;
+        v)  verbose="/dev/stdout" #more verbose
             ;;
         *)
             echo "Wrong optional argument"
