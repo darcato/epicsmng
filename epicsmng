@@ -318,18 +318,24 @@ function compile_streamdevice {
 top="$(pwd)"  #top default path is "."
 
 usage() { 
-    echo "USAGE: $0 [-C <path>] configuration"
+    echo "USAGE: $0 [-C <path>] [-j <n>] configuration"
     echo "     configuration - a config file describing the epics modules to be installed"
+    echo "     -C <path>     - where to install modules"
+    echo "     -j <n>        - parallel jobs on make"
     exit 1; 
 }
 
 # parse optional argument [-C <top>]
-while getopts ":C:" o; do
+while getopts ":C:j:" o; do
     case "${o}" in
         C)
             top="$(realpath ${OPTARG})"  #save absolute path in top
             ;;
+        j)  export MAKEOPTS='-j${OPTARG}'
+            export MAKEFLAGS='-j${OPTARG}'
+            ;;
         *)
+            echo "Wrong optional argument"
             usage
             ;;
     esac
