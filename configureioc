@@ -1,40 +1,5 @@
 #!/bin/bash
 
-base_dbd="base.dbd"
-base_libs="\$(EPICS_BASE_IOC_LIBS)"
-
-asyn_dbd="asyn.dbd drvAsynIPPort.dbd drvAsynSerialPort.dbd"
-asyn_libs="asyn"
-
-cyusbdevsup_dbd=""
-cyusbdevsup_libs=""
-
-motor_dbd="motorSupport.dbd"
-motor_libs="motor"
-
-ipac_dbd="ipac.dbd"
-ipac_libs="ipac"
-
-streamdevice_dbd="stream.dbd"
-streamdevice_libs="stream"
-
-calc_dbd="calc.dbd"
-calc_libs="calc"
-
-beckmotor_dbd="beckMotor.dbd"
-beckmotor_libs="beckMotor"
-
-modbus_dbd="modbus.dbd"
-modbus_libs="modbus"
-
-autosave_dbd="asSupport.dbd"
-autosave_libs="autosave"
-
-busy_dbd="busySupport.dbd"
-busy_libs="busy"
-
-sscan_dbd="sscanSupport.dbd"
-sscan_libs="sscan"
 
 
 
