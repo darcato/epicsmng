@@ -39,7 +39,7 @@ dir=$top/modules/$confname
 
 # if I cannot read it (file not present or unreadable) error
 if [ ! -d "$dir" ]; then
-    echo "Cannot find installed configurations"
+    echo "Cannot find installed configuration $confname"
     exit 1
 else
     echo "Removing $dir"

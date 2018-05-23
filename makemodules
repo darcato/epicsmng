@@ -1,6 +1,7 @@
 #!/bin/bash
 
-src="/usr/src/epics/"
+#using "local" folder as this will not be managed by a packet manager
+src="/usr/local/src/epics/"
 
 base_url="https://git.launchpad.net/epics-base"
 asyn_url='https://github.com/epics-modules/asyn.git'
@@ -13,9 +14,7 @@ autosave_url="https://github.com/epics-modules/autosave.git"
 busy_url="https://github.com/epics-modules/busy.git"
 sscan_url="https://github.com/epics-modules/sscan.git"
 beckmotor_url="https://github.com/darcato/beckMotor.git"
-
 gensub_url="http://www.observatorysciences.co.uk/downloads/$fname"
-
 cyusbdevsup_url="https://baltig.infn.it/epicscs/cyusbdevsup.git"
 
 asyn_requires="base"
@@ -29,6 +28,9 @@ motor_optionals="busy ipac sncseq"
 
 ipac_requires="base"
 ipac_optionals=""
+
+streamdevice_requires=""
+streamdevice_optionals=""
 
 calc_requires="base"
 calc_optionals="sscan sncseq"
@@ -77,8 +79,8 @@ function prepare_git_src {
     fi    
     #discard local changes
     git checkout -- . 
-    #checkout to the desired version
-    if ! git checkout "$version"; then
+    #checkout to the desired version (silencing detached head state)
+    if ! git -c advice.detachedHead=false checkout "$version"; then
         echo "ERRORE: Git version tag $version not found."
         echo "Example of available versions are:"
         echo "$(git tag --sort=-version:refname | head -n 15)"
@@ -368,7 +370,7 @@ fi
 #echo configuration name
 confname="$(basename -- "$configfile")"
 confname="${confname%.*}"
-echo " Configuration $confname"
+echo "Configuration: -> $confname <-"
 
 #parse config file
 tmpfile=$(mktemp)  #create temporary file
@@ -389,8 +391,6 @@ do
 done < "$tmpfile"
 rm "$tmpfile"
 
-
-echo ${modules[0]}
 if [ ${modules[0]} != "base" ] && [ ${modules[0]} != "Base" ] && [ ${modules[0]} != "BASE" ]; then
     echo "ERROR: base must be the first module in the configuration"
     exit 0
@@ -443,3 +443,9 @@ for i in "${!modules[@]}"; do
         fi
     fi
 done
+
+
+# eliminare le vecchie cartelle quando si aggiorna la versione
+# eliminare la possibilita' che un fallimento a meta' quando creo qualcosa lasci sporco
+# gestire nome sequencer
+# gestire calc che non ha il file config_site
