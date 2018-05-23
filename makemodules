@@ -3,52 +3,7 @@
 #using "local" folder as this will not be managed by a packet manager
 src="/usr/local/src/epics/"
 
-base_url="https://git.launchpad.net/epics-base"
-asyn_url='https://github.com/epics-modules/asyn.git'
-motor_url='https://github.com/epics-modules/motor'
-ipac_url="https://github.com/epics-modules/ipac.git"
-streamdevice_url="https://github.com/paulscherrerinstitute/StreamDevice.git"
-calc_url='https://github.com/epics-modules/calc.git'
-modbus_url="https://github.com/epics-modules/modbus.git"
-autosave_url="https://github.com/epics-modules/autosave.git"
-busy_url="https://github.com/epics-modules/busy.git"
-sscan_url="https://github.com/epics-modules/sscan.git"
-beckmotor_url="https://github.com/darcato/beckMotor.git"
-gensub_url="http://www.observatorysciences.co.uk/downloads/$fname"
-cyusbdevsup_url="https://baltig.infn.it/epicscs/cyusbdevsup.git"
 
-asyn_requires="base"
-asyn_optionals="sncseq ipac"
-
-cyusbdevsup_requires="base asyn"
-cyusbdevsup_optionals=""
-
-motor_requires="base asyn"
-motor_optionals="busy ipac sncseq"
-
-ipac_requires="base"
-ipac_optionals=""
-
-streamdevice_requires=""
-streamdevice_optionals=""
-
-calc_requires="base"
-calc_optionals="sscan sncseq"
-
-beckmotor_requires="base asyn motor"
-beckmotor_optionals=""
-
-modbus_requires="base asyn"
-modbus_optionals=""
-
-autosave_requires="base"
-autosave_optionals=""
-
-busy_requires="base autosave asyn"
-busy_optionals=""
-
-sscan_requires="base"
-sscan_optionals="sncseq"
 
 #execute here a configuration file which can ovverride default macro values
 

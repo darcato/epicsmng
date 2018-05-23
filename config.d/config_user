@@ -1,5 +1,18 @@
-cyusbdevsup_url="https://baltig.infn.it/epicscs/cyusbdevsup.git"
-cyusbdevsup_requires="base asyn"
-cyusbdevsup_optionals=""
-cyusbdevsup_dbd=""
-cyusbdevsup_libs=""
+# Davide Marcato 2018
+# Example of user settings for epicsmng
+#
+# ADD HERE CUSTOM SETTINGS
+# var+="value"  -> create a new settings or add to its default value
+# var="value"   -> create a new settings or substitute its default value
+
+#module_url+=""          - the url of the git repository or of files to download
+#module_requires+=""     - the modules that are required to compiled this one, to be set in configure/RELEASE
+#module_optionals+=""    - the optional modules to set in configure/RELEASE when available
+#module_dbd+=""          - the dbd files provided by the module, to be set in myApp/src/Makefile
+#module_libs+=""         - the libs files provided by the module, to be set in myApp/src/Makefile
+
+cyusbdevsup_url+="https://baltig.infn.it/epicscs/cyusbdevsup.git"
+cyusbdevsup_requires+="base asyn"
+cyusbdevsup_optionals+=""
+cyusbdevsup_dbd+=""
+cyusbdevsup_libs+=""

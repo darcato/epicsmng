@@ -7,8 +7,9 @@ usage() {
     echo "     command - one of the supported commands"
     echo "     args    - the command arguments"
     echo "Supported commands:"
-    echo " - makemodules"
-    echo " - cleanmodules"
+    echo " - makemodules [-C <path>] [-j <n>] [-v] configuration"
+    echo " - cleanmodules [-C <path>] configuration"
+    echo " - configureioc [-C <path>] configuration"
     exit 1; 
 }
 
