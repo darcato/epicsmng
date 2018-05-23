@@ -2,10 +2,21 @@
 
 #using "local" folder as this will not be managed by a packet manager
 src="/usr/local/src/epics/"
+confdir="/home/$(whoami)/.config/epicsmng/"
+config="$confdir/config"
 
+if [ ! -r $config ] || [ ! -d $src ] ; then
+    echo "$0 not installed. Please run install.sh"
+    exit 1;
+fi
 
+#run default config file
+source config
 
-#execute here a configuration file which can ovverride default macro values
+#run user-supplied config files
+for file in $confdir/config.d/*; do
+  source $file
+done
 
 #this creates the folder containing the source of a module
 #clones the repository
@@ -355,14 +366,7 @@ fi
 modulespath="$top/modules"
 target="$modulespath/$confname"
 
-#create source folder if not present
-if [ ! -d $src ]; then
-    echo "Installing source folder"
-    if ! sudo install -d -o $(whoami) -g $(id -n -g $(whoami)) -m 775 $src; then
-        echo "Cannot create source folder $src"
-        exit 1
-    fi
-fi
+
 
 #create modules folder if not present
 if [ ! -d $modulespath ]; then
