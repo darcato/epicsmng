@@ -1,5 +1,42 @@
 #!/bin/bash
 
+base_dbd="base.dbd"
+base_libs="\$(EPICS_BASE_IOC_LIBS)"
+
+asyn_dbd="asyn.dbd drvAsynIPPort.dbd drvAsynSerialPort.dbd"
+asyn_libs="asyn"
+
+cyusbdevsup_dbd=""
+cyusbdevsup_libs=""
+
+motor_dbd="motorSupport.dbd"
+motor_libs="motor"
+
+ipac_dbd="ipac.dbd"
+ipac_libs="ipac"
+
+streamdevice_dbd="stream.dbd"
+streamdevice_libs="stream"
+
+calc_dbd="calc.dbd"
+calc_libs="calc"
+
+beckmotor_dbd="beckMotor.dbd"
+beckmotor_libs="beckMotor"
+
+modbus_dbd="modbus.dbd"
+modbus_libs="modbus"
+
+autosave_dbd="asSupport.dbd"
+autosave_libs="autosave"
+
+busy_dbd="busySupport.dbd"
+busy_libs="busy"
+
+sscan_dbd="sscanSupport.dbd"
+sscan_libs="sscan"
+
+
 
 #################################### COPIED
 function set_config {
@@ -15,7 +52,7 @@ function set_config {
         #else: write it at the end of file
         echo "$2=$3" >> $1
     fi
-    fi    
+    fi
 }
 
 function disable_config {
@@ -61,6 +98,8 @@ if [ -z "$top" ]; then
     usage
 fi
 
+cd $top
+
 # the first non-optional parameter must be the config file
 if [ "$#" -ne 1 ]; then
     echo "Wrong number of parameters"
@@ -80,14 +119,17 @@ target="$modulespath/$confname"
 
 
 function set_makefile {
-    #file, token, value, extension
+    #echo $0 $1 $2 $3
+    #file, token, value
     if grep -q -e "[# \t]*$2[ \t]*+=[ \t]*$3" $1 ; then
+        echo " - Using $3"
         #the token is present, update it
-        sed -i -e "s/[# \t]*$2[ \t]*+=.*/$2+=$3" $1
-    else if grep -q -e "[# \t]*$2[ \t]*+=.*"$4"" $1; then
-        # token not found, but found after: insert the token the line before
-        linenum="$(grep -n -e "[# \t]*$2[ \t]*+=.*"$4"" $1 | cut -d : -f 1 | tail -n1)"
-        sed -i ""$linenum"a\\$2+=$3" $1  #insert the line after
+        sed -i -e "s/[# \t]*$2[ \t]*+=[ \t]*$3/$2 += $3/" $1
+    else if grep -q -e "^[# \t]*$2[ \t]*+=[^()$]*$" $1; then
+        echo " - Adding $3"
+        # token not found, but found after: insert the token the line after
+        linenum="$(grep -n -e "^[# \t]*$2[ \t]*+=[^()$]*$" $1 | cut -d : -f 1 | tail -n1)"
+        sed -i ""$linenum"a\\$2 += $3" $1  #insert the line after
     else
         #else: write it at the end of file
         echo "Cannot determine where to write the dbd. Ignoring $3"
@@ -95,54 +137,47 @@ function set_makefile {
     fi 
 }
 
-function set_dbd {
-    module=$1
-    cd dbd
-    dbd=""
-    if find . -iname "$module.dbd"; then
-        dbd=$(find . -iname "$module.dbd")
-    else if find . -iname ""$module"Support.dbd"; then
-        dbd=$(find . -iname ""$module"Support.dbd")
-    else
-        echo "Cannot determine the correct DBD to install: ignoring dbd of $module"
-        return 1
-    fi
-    fi
-
-    #keep only file name from path
-    dbd="$(basename -- "$dbd")"
-
+function configure_apps {
     cd $top
     folders="$(ls -d *App)"
     for d in "$folders"; do
-        cd $d/src/
-        set_makefile Makefile "${d: : -3}"_DBD $dbd ".dbd"
+        echo "Configuring $d/src/Makefile"
+        set_libs $d/src/Makefile "${d: : -3}" "dbd"    
+        set_libs $d/src/Makefile "${d: : -3}" "libs"
     done
-    
 }
 
 function set_libs {
-    module=$1
-    cd lib
-    libs=""
-    if find . -iname "lib$module\.so"; then 
-        libs=$(find . -iname "lib$module\.so | head -n1")
-    else
-        echo "Cannot determine the correct LIBS to install: ignoring libs of $module"
-        return 1
-    fi
+    file=$1
+    appname=$2"_""$(echo -e "$3" | tr '[:lower:]' '[:upper:]')" # something like myapp_DBD or myapp_LIBS
+    type=$3
 
-    #keep only file name from path
-    libs="$(basename -- "$libs")" 
-    libs="${libs%.*}"   #remove .so
-    libs="${libs:3}"    #remove trailing lib
-
-    cd $top
-    folders="$(ls -d *App)"
-    for d in "$folders"; do
-        cd $d/src/
-        set_makefile Makefile "${d: : -3}"_LIBS $libs ""
+    #first set new dbds, uncommenting the existing ones or doing nothing if already present
+    for m in "${modules[@]}"; do     
+        dbds=$m"_"$type  #something like asyn_dbd
+        for dbd in ${!dbds}; do
+            set_makefile $file $appname $dbd
+        done
     done
+
+    #then comment lines containing dbds not in this configuration
+    while read -r line ; do
+        set="$(echo $line | grep -o -e "\S*[ \t]*\(#.*\)*$")"
+        found=false
+        for m in "${modules[@]}"; do     
+            dbds=$m"_"$type  #something like asyn_dbd
+            for _d in ${!dbds}; do
+                if [ $set = $_d ]; then
+                    found=true
+                    break
+                fi
+            done
+        done
+        if [ "$found" = false  ]; then
+            echo " - Commenting $set"
+            sed -i "s/.*$line/#&/" $file
+        fi
+    done < <(grep -e "^[ \t]*$appname[ \t]*+=.*[ \t]*\(#.*\)*$" $file)
 }
 
 
@@ -167,34 +202,23 @@ do
 done < "$tmpfile"
 rm "$tmpfile"
 
+
+# comment all definitions in configure/RELEASE
+
 #iterate on arrays and compile corresponding module
 for i in "${!modules[@]}"; do     
     echo "---"
     echo "Configuring ioc to use ${modules[$i]}-${versions[$i]}"
-    cd $top
-    if [ ! -d $target/${modules[$i]}-${versions[$i]} ]; then
-        echo "Module $target/${modules[$i]}-${versions[$i]}. Skipping..."
-        continue
-    fi
 
     module_up="$(echo -e "${modules[$i]}" | tr '[:lower:]' '[:upper:]')" #to uppercase
     set_release_par "$module_up" "\$(TOP)/modules/${modules[$i]}-${versions[$i]}"
-
-    if [ "${modules[$i]}" != "base" ]; then
-        echo "${modules[$i]}"
-        cd $target/${modules[$i]}-${versions[$i]}
-        set_libs "${modules[$i]}"
-        cd $target/${modules[$i]}-${versions[$i]}
-        set_libs "${modules[$i]}"
-    fi
 done
 
-# cercare tutte le cartelle che finisco per App
-# mi salvo il nome dell'app
-# per ogni cartella entrare in src
-# modificare makefile
-# cerco nomeapp_DBD e aggiungo dopo l'ultima riga che finisce per .dbd
-# empty_DBD += xxx.dbd
-# lo stesso per empty_LIBS
+configure_apps
+
+#add modules to gitignore, if not already present
+if ! grep -q -F "modules/" $top/.gitignore; then
+    echo "modules/" >> $top/.gitignore
+fi
 
 #problema con stream name
