@@ -1,0 +1,5 @@
+cyusbdevsup_url="https://baltig.infn.it/epicscs/cyusbdevsup.git"
+cyusbdevsup_requires="base asyn"
+cyusbdevsup_optionals=""
+cyusbdevsup_dbd=""
+cyusbdevsup_libs=""
