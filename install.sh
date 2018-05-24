@@ -1,4 +1,4 @@
-#!/bin/bash
+#/usr/bin/env bash
 
 if [ "`id -u`" -ne 0 ]; then
     echo "Please run as superuser"
@@ -14,4 +14,7 @@ if ! install -m 755 ./epicsmng $dest; then
     echo "Installation failed"
     exit 1
 fi
+
+install -m 644 ./epicsmng-completion.bash /etc/bash_completion.d/
+
 echo "Done!"
