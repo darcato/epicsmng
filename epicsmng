@@ -1,9 +1,9 @@
-#!/bin/bash
+#/usr/bin/env bash
 
 ######################################################
 #                                                    #
 #  Davide Marcato 2018                               #
-#  epicsmng script to manage epics modules           #
+#  epicsmng: script to manage epics modules          #
 #                                                    #
 #  DO NOT MODIFY THIS FILE                           #
 #  Changes will be overwritten upon updating         #
@@ -104,7 +104,6 @@ usr="$(whoami)"
 src="/home/$usr/.config/epicsmng/src/"
 confdir="/home/$usr/.config/epicsmng/config/"
 
-
 if ! install -d $confdir; then
     echo "WARNING: cannot create user configuration directory $confdir"
 fi
@@ -116,7 +115,7 @@ fi
 
 #if configdir empty, populate it with example user config
 if [ -z "$(ls -A $confdir)" ]; then
-    cat >example.config <<EOF
+    cat >$confdir/example.config <<EOF
 #!/bin/bash
 # Davide Marcato 2018
 # Example of user settings for epicsmng
@@ -291,10 +290,10 @@ function set_optionals {
 
         #if not found, comment it in configure/RELEASE, else uncomment and set path
         if [ "$indx" = -1 ]; then 
-            echo "Commenting $module_up"
+            echo " - Commenting $module_up"
             disable_release_par "$module_up"
         else
-            echo "Setting $module_up"
+            echo " - Setting $module_up"
             set_release_par "$module_up" "$target/$m-${versions[$indx]}"
         fi
     done
@@ -326,6 +325,7 @@ function compile_git {
     fi
     set_optionals "$module"
 
+    echo "Building..."
     make > $verbose 2>&1
 }
 
@@ -379,7 +379,8 @@ function compile_gensub {
     set_release_par 'EPICS_BASE' $base
     #sed -i -e "s/^\(CROSS_COMP.*\)/#\1/" configure/CONFIG    
     disable_config configure/CONFIG 'CROSS_COMP'
-    make distclean
+    
+    echo "Building..."
     make > $verbose 2>&1
     #rm -rf $1
 };
@@ -410,7 +411,7 @@ function compile_streamdevice {
     #discard local changes
     git checkout -- . 
     #checkout to the desired version
-    if ! git checkout "$version"; then
+    if ! git -c advice.detachedHead=false checkout "$version"; then
         echo "ERRORE: Git version tag $version not found."
         return 1
     fi
@@ -560,22 +561,31 @@ top="$(pwd)"  #top default path is "."
 verbose="/dev/null"  #verbosity: default=non verbose
 
 usage() { 
+    echo ""
     echo "USAGE: $0 command args"
     echo "     command - one of the supported commands"
     echo "     args    - the command arguments"
-    echo " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
+    echo ""
     echo "Supported commands:"
     echo " - makemodules [-C <path>] [-j <n>] [-v] configuration"
     echo " - cleanmodules [-C <path>] configuration"
     echo " - configureioc [-C <path>] configuration"
-    echo " ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~"
+    echo ""
     echo "Arguments:"
-    echo "     configuration - a file describing the epics modules to be installed"
-    echo "     -C <path>     - where to install modules"
-    echo "     -j <n>        - parallel jobs on make"
-    echo "     -v            - enable verbose mode"
+    echo " - configuration - a file describing the epics modules to be installed"
+    echo " - -C <path>     - where to install modules"
+    echo " - -j <n>        - parallel jobs on make"
+    echo " - -v            - enable verbose mode"
+    echo ""
     exit 1; 
 }
+
+# the first non-optional parameter must be the command
+if (( $# < 1 )); then
+    usage
+fi
+command=$1
+shift 1  #shift so that now optional args are first (required by optargs)
 
 # parse optional argument [-C <top>]
 while getopts ":C:j:v" o; do
@@ -601,13 +611,11 @@ if [ -z "$top" ]; then
     usage
 fi
 
-# the first non-optional parameter must be the command
-if [ $# -ne 2 ]; then
+# There must be the configuration file
+if [ $# -ne 1 ]; then
     usage
 fi
-
-command="$1"
-configfile="$2"
+configfile="$1" #was the $2 but shifted
 
 # if I cannot read it (file not present or unreadable) error
 if [ ! -r "$configfile" ]; then
@@ -656,7 +664,7 @@ makemodules)
 cleanmodules)
     cleanmodules
     ;;
-configureioc
+configureioc)
     configureioc
     ;;
 *)
