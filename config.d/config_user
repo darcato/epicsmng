@@ -2,8 +2,8 @@
 # Example of user settings for epicsmng
 #
 # ADD HERE CUSTOM SETTINGS
-# var+="value"  -> create a new settings or add to its default value
-# var="value"   -> create a new settings or substitute its default value
+# var+="value"  -> create a new setting or add to its default value
+# var="value"   -> create a new setting or substitute its default value
 
 #module_url+=""          - the url of the git repository or of files to download
 #module_requires+=""     - the modules that are required to compiled this one, to be set in configure/RELEASE
