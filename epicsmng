@@ -44,7 +44,7 @@ ipac_dbd="ipac.dbd"
 ipac_libs="ipac"
 
 streamdevice_url="https://github.com/paulscherrerinstitute/StreamDevice.git"
-streamdevice_requires=""
+streamdevice_requires="base"
 streamdevice_optionals=""
 streamdevice_dbd="stream.dbd"
 streamdevice_libs="stream"
@@ -449,7 +449,7 @@ function compile_streamdevice {
     set_optionals "$module"
 
     echo "Building..."
-    make clean > $verbose 2>&1
+    make -C $module --makefile Makefile clean > $verbose 2>&1
     make -C $module --makefile Makefile > $verbose 2>&1
 }
 
