@@ -101,9 +101,9 @@ gensub_libs=""
 ########################################################################
 
 usr="$(whoami)"
-basedir="/home/$usr/.config/epicsmng/"
-src="$basedir/src/"
-settingsdir="$basedir/settings/"
+basedir="/home/$usr/.config/epicsmng"
+src="$basedir/src"
+settingsdir="$basedir/settings"
 
 if ! install -d $settingsdir; then
     echo "WARNING: cannot create user configuration directory $settingsdir"
@@ -154,7 +154,7 @@ function prepare_git_src {
     if [ ! -d "$module" ]; then
         echo "Cloning from repo $remote"
         if ! git clone "$remote" "$module"; then
-            echo "ERRORE: Git clone failed. Check connection."
+            echo "ERROR: Git clone failed."
             return 1
         fi
         cd "$module"
@@ -162,7 +162,7 @@ function prepare_git_src {
         cd "$module"
         echo "Updating from repo $remote"
         if ! git fetch --all; then
-            echo "Git fetch failed"
+            echo "WARNING: Git fetch failed."
             #do not return error, may still find required version on local repo
         fi
     fi    
@@ -170,7 +170,7 @@ function prepare_git_src {
     git checkout -- . 
     #checkout to the desired version (silencing detached head state)
     if ! git -c advice.detachedHead=false checkout "$version"; then
-        echo "ERRORE: Git version tag $version not found."
+        echo "ERROR: Git version tag $version not found."
         echo "Example of available versions are:"
         echo "$(git tag --sort=-version:refname | head -n 15)"
         return 1
@@ -311,6 +311,10 @@ function compile_git {
     
     url="_url"
     url="$module$url"
+    if [ -z ${!url+x} ]; then
+        echo "Download url of $module not set. Please add it to $settingsdir/user.settings"
+        return 1
+    fi
     if ! prepare_git_src ${!url} "$module" "$version"; then
         return 1
     fi
@@ -549,11 +553,19 @@ function configureioc {
     fi
 
     #if gitignore is present but modules/ is not listed, add it
-    if [ -r $top/.gitignore]; then
+    if [ -r $top/.gitignore ]; then
         if ! grep -q -F "modules/" $top/.gitignore; then
             echo "modules/" >> $top/.gitignore
         fi
     fi
+}
+
+##### LISTMODULES #####
+
+function listmodules {
+    echo "Available modules:"
+    echo "------------------"
+    echo "$(set -o posix; set | grep "_url" | grep -o -e "^[^_]*")"
 }
 
 ##### EPICSMNG #####
@@ -612,52 +624,55 @@ if [ -z "$top" ]; then
     usage
 fi
 
-# There must be the configuration file
-if [ $# -ne 1 ]; then
-    usage
-fi
-configfile="$1" #was the $2 but shifted
-
-# if I cannot read it (file not present or unreadable) error
-if [ ! -r "$configfile" ]; then
-    echo "Cannot read file $configfile"
-    exit 1
-fi
-
-#echo configuration name
-confname="$(basename -- "$configfile")"
-confname="${confname%.*}"
-echo "Configuration: -> $confname <-"
-
-#where to install binaries
-modulespath="$top/modules"
-target="$modulespath/$confname"
-
-#parse config file
-tmpfile=$(mktemp)  #create temporary file
-grep -o '^[^#]*' "$configfile" > "$tmpfile"  #a copy without comments
-declare -a modules #an array to store found modules
-declare -a versions #an array to store found versions
-while IFS='=' read module version
-do
-    if [[ $version ]]
-    then
-        module="$(echo -e "$module" | tr '[:upper:]' '[:lower:]')" #to lowercase
-        module="$(echo -e "$module" | tr -d '[:space:]')" #remove spaces
-        modules+=( "$module" ) #add to array
-        version="$(echo -e "$version" | tr -d '[:space:]')" #to lowercase        
-        versions+=( "$version" ) #add to array
-        echo "  $module - $version"
+if [ $command != "listmodules" ]; then
+    # There must be the configuration file
+    if [ $# -ne 1 ]; then
+        usage
     fi
-done < "$tmpfile"
-rm "$tmpfile"
+    configfile="$1" #was the $2 but shifted
 
-if [ ${modules[0]} != "base" ] && [ ${modules[0]} != "Base" ] && [ ${modules[0]} != "BASE" ]; then
-    echo "ERROR: base must be the first module in the configuration"
-    exit 0
+    # if I cannot read it (file not present or unreadable) error
+    if [ ! -r "$configfile" ]; then
+        echo "Cannot read file $configfile"
+        exit 1
+    fi
+
+    #echo configuration name
+    confname="$(basename -- "$configfile")"
+    confname="${confname%.*}"
+    echo "Configuration: -> $confname <-"
+
+    #where to install binaries
+    modulespath="$top/modules"
+    target="$modulespath/$confname"
+
+    #parse config file
+    tmpfile=$(mktemp)  #create temporary file
+    grep -o '^[^#]*' "$configfile" > "$tmpfile"  #a copy without comments
+    declare -a modules #an array to store found modules
+    declare -a versions #an array to store found versions
+    while IFS='=' read module version
+    do
+        if [[ $version ]]
+        then
+            module="$(echo -e "$module" | tr '[:upper:]' '[:lower:]')" #to lowercase
+            module="$(echo -e "$module" | tr -d '[:space:]')" #remove spaces
+            modules+=( "$module" ) #add to array
+            version="$(echo -e "$version" | tr -d '[:space:]')" #to lowercase        
+            versions+=( "$version" ) #add to array
+            echo "  $module - $version"
+        fi
+    done < "$tmpfile"
+    rm "$tmpfile"
+
+    if [ ${modules[0]} != "base" ] && [ ${modules[0]} != "Base" ] && [ ${modules[0]} != "BASE" ]; then
+        echo "ERROR: base must be the first module in the configuration"
+        exit 0
+    fi
 fi
 
 
+#main command launcher
 case "$command" in
 makemodules)
 	makemodules
@@ -667,6 +682,9 @@ cleanmodules)
     ;;
 configureioc)
     configureioc
+    ;;
+listmodules)
+    listmodules
     ;;
 *)
 	echo "Unknown command '$command'"
@@ -678,7 +696,7 @@ echo "--- Completed ---"
 
 # eliminare le vecchie cartelle quando si aggiorna la versione
 # eliminare la possibilita' che un fallimento a meta' quando creo qualcosa lasci sporco
-# gestire nome sequencer
 # gestire calc che non ha il file config_site
 # anche nel configure/RELEASE commentare cio' che non serve piu'
 # cosa succede se provo a installare un modulo di cui non ho l'url?
+# sistemare print
