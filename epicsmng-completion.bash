@@ -1,7 +1,7 @@
 #/usr/bin/env bash
 
 # the commands available as first argument of epicsmng
-commands="makemodules cleanmodules listmodules createconf configureioc"
+commands="makemodules cleanmodules listmodules configureioc"
 
 #custom function to autocomplete epicsmng
 function _epicsmng_autocomplete_()
