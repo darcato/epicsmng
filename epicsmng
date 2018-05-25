@@ -8,7 +8,7 @@
 #  DO NOT MODIFY THIS FILE                           #
 #  Changes will be overwritten upon updating         #
 #  Add your own configs inside:                      #
-#  ~/.config/epicsmng/config                         #
+#  ~/.config/epicsmng/settings                       #
 #                                                    #
 ######################################################
 
@@ -101,11 +101,12 @@ gensub_libs=""
 ########################################################################
 
 usr="$(whoami)"
-src="/home/$usr/.config/epicsmng/src/"
-confdir="/home/$usr/.config/epicsmng/config/"
+basedir="/home/$usr/.config/epicsmng/"
+src="$basedir/src/"
+settingsdir="$basedir/settings/"
 
-if ! install -d $confdir; then
-    echo "WARNING: cannot create user configuration directory $confdir"
+if ! install -d $settingsdir; then
+    echo "WARNING: cannot create user configuration directory $settingsdir"
 fi
 
 if ! install -d $src; then
@@ -114,8 +115,8 @@ if ! install -d $src; then
 fi
 
 #if configdir empty, populate it with example user config
-if [ -z "$(ls -A $confdir)" ]; then
-    cat >$confdir/example.config <<EOF
+if [ -z "$(ls -A $settingsdir)" ]; then
+    cat >$settingsdir/user.settings <<EOF
 #!/bin/bash
 # Davide Marcato 2018
 # Example of user settings for epicsmng
@@ -134,7 +135,7 @@ EOF
 fi
 
 #run user-supplied config files
-for file in $confdir/*; do
+for file in $settingsdir/*; do
   source $file
 done
 
@@ -680,3 +681,4 @@ echo "--- Completed ---"
 # gestire nome sequencer
 # gestire calc che non ha il file config_site
 # anche nel configure/RELEASE commentare cio' che non serve piu'
+# cosa succede se provo a installare un modulo di cui non ho l'url?

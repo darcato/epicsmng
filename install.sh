@@ -6,7 +6,7 @@ if [ "`id -u`" -ne 0 ]; then
 fi
 
 #using "local" folder as this will not be managed by a packet manager
-dest=$"/usr/local/bin/"
+dest="/usr/local/bin/"
 
 #create source folder if not present
 echo "Installing epicsmng..."
