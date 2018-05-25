@@ -232,6 +232,21 @@ function disable_release_par {
     disable_config configure/RELEASE $1
 }
 
+function set_site {
+    str="$1"
+    dest="$2"
+    file="configure/CONFIG_SITE"
+
+    if [ ! -r "$file" ]; then
+        file="configure/CONFIG"
+    fi
+
+    #if not present exactly as required -> you are changing version    
+    #if ! grep -q -e "^[ \t]*$str[ \t]*=[ \t]*$dest/\?[ \t]*\(#.*\)*$" $file; then
+        set_config $file "$str" $dest
+    #fi
+}
+
 #sets configure/release with path of the required modules to compile a module
 #it reads the required ones from $module_requires variable
 function set_requires {
@@ -318,10 +333,10 @@ function compile_git {
     if ! prepare_git_src ${!url} "$module" "$version"; then
         return 1
     fi
-    
+   
     cd $src/$module
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    
+    set_site 'INSTALL_LOCATION' $dest
+
     #set file configure release with target, the required modules and the optional ones
     set_release_par "SUPPORT" $target
     if ! set_requires "$module"; then
@@ -331,6 +346,7 @@ function compile_git {
     set_optionals "$module"
 
     echo "Building..."
+    make clean > $verbose 2>&1
     make > $verbose 2>&1
 }
 
@@ -422,7 +438,7 @@ function compile_streamdevice {
     fi
     
     cd $src/$module
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
+    set_site 'INSTALL_LOCATION' $dest
     
     #set file configure release with target, the required modules and the optional ones
     #set_release_par "SUPPORT" $target
@@ -432,6 +448,8 @@ function compile_streamdevice {
     fi
     set_optionals "$module"
 
+    echo "Building..."
+    make clean > $verbose 2>&1
     make -C $module --makefile Makefile > $verbose 2>&1
 }
 
@@ -459,6 +477,9 @@ function makemodules {
     for i in "${!modules[@]}"; do     
         echo "---"
         echo "Compiling ${modules[$i]}-${versions[$i]}"
+
+        otherversions="$(find $target -name "${modules[$i]}-*" | grep -v "${versions[$i]}")"
+        rm -rf $otherversions
         
         # if a special function is declared to compile this module, use it
         if [ "$(type -t compile_"${modules[i]}")" = "function" ]; then
@@ -542,7 +563,7 @@ function configureioc {
     for i in "${!modules[@]}"; do     
         echo "Configuring ioc to use ${modules[$i]}-${versions[$i]}"
         module_up="$(echo -e "${modules[$i]}" | tr '[:lower:]' '[:upper:]')" #to uppercase
-        set_release_par "$module_up" "\$(TOP)/modules/${modules[$i]}-${versions[$i]}"
+        set_release_par "$module_up" "\$(TOP)/modules/$confname/${modules[$i]}-${versions[$i]}"
     done
 
     configure_apps
@@ -694,9 +715,5 @@ listmodules)
 esac
 echo "--- Completed ---"
 
-# eliminare le vecchie cartelle quando si aggiorna la versione
 # eliminare la possibilita' che un fallimento a meta' quando creo qualcosa lasci sporco
-# gestire calc che non ha il file config_site
-# anche nel configure/RELEASE commentare cio' che non serve piu'
-# cosa succede se provo a installare un modulo di cui non ho l'url?
 # sistemare print
