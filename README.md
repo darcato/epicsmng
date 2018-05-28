@@ -37,19 +37,19 @@ To remove it: ```sudo sh uninstall.sh```
 
 ## Commands
 
-1. ```epicsmng makemodules [-C <path>] [-j<n>] [-v]  <conf_file>```
++ ```epicsmng makemodules [-C <path>] [-j<n>] [-v]  <conf_file>```
    
    This command download modules sources, configures them and install in ```<path>/modules/<configname>``` where the path is the one specified by ```-C``` option (with default value the folder where the script is executed) and ```<configname>``` is the name of the configuration file. The ```-j``` option is used to enable multithread compilation, so ```-j5``` will use 5 thread to speed up the compilation process. The ```-v``` option let the user print more verbose output.
 
-2. ```epicsmng cleanmodules [-C <path>]  <conf_file>```
++ ```epicsmng cleanmodules [-C <path>]  <conf_file>```
    
    This command removes the compiled directories corresponding to a certain configuration file.
 
-3. ```epicsmng configureioc [-C <path>]  <conf_file>```
++ ```epicsmng configureioc [-C <path>]  <conf_file>```
 
    This command configures an ioc to use the specified configuration. The ioc is specified by its TOP folder path, via the ```-C``` option or by executing the script in the TOP folder. Then the file ```configure/RELEASE``` is set with the paths to the compiled modules, relative to the $(TOP) macro. Furthermore the file *App/src/Makefile (where * stands for each application installed in the ioc) is modified to add the corresponding dbd and libs.
 
-4. ```epicsmng listmodules```
++ ```epicsmng listmodules```
 
    This command lists the names of the available modules, that is the ones which will be accepted in the configuration file.
 
