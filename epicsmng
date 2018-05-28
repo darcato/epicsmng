@@ -508,8 +508,8 @@ function makemodules {
         echo "---"
         echo "Compiling ${modules[$i]}-${versions[$i]}"
 
-        otherversions="$(find $target -name "${modules[$i]}-*" | grep -v "${versions[$i]}")"
-        rm -rf $otherversions
+        #otherversions="$(find $target -name "${modules[$i]}-*" | grep -v "${versions[$i]}")"
+        #rm -rf $otherversions
         
         # if a special function is declared to compile this module, use it
         if [ "$(type -t compile_"${modules[i]}")" = "function" ]; then
@@ -524,6 +524,22 @@ function makemodules {
                 echo "For more informations on compile errors try running with -v flag."
                 exit 1
             fi
+        fi
+    done
+    echo ""
+    
+    #remove unused compiled modules
+    for dir in $target/*/ ; do
+        found=false
+        for i in "${!modules[@]}"; do  
+            if [ "${modules[$i]}-${versions[$i]}" = "$(basename $dir)" ]; then
+                found=true
+                break
+            fi
+        done
+        if [ "$found" = false  ]; then
+            echo "Removing unused module $dir"
+            rm -rf $dir
         fi
     done
 
@@ -745,6 +761,4 @@ listmodules)
 esac
 echo "--- Completed ---"
 
-# eliminare la possibilita' che un fallimento a meta' quando creo qualcosa lasci sporco
 # sistemare print
-# eliminare moduli eliminati da versione
