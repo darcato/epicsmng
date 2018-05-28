@@ -91,7 +91,7 @@ sncseq_optionals=""
 sncseq_dbd=""
 sncseq_libs=""
 
-gensub_url="http://www.observatorysciences.co.uk/downloads/$fname"
+gensub_url="http://www.observatorysciences.co.uk/downloads/"
 gensub_requires="base"
 gensub_optionals=""
 gensub_dbd=""
@@ -350,6 +350,57 @@ function compile_git {
     make > $verbose 2>&1
 }
 
+function compile_file {
+    module="$1"
+    version="$2"
+    fname="$3"
+    dest="$target/$module-$version"
+
+    mkdir -p $src/$module
+    cd $src/$module
+    if [ -d $version ]; then
+        echo "folder exists"
+        cd $version
+    elif [ -f $fname ]; then
+        echo "file exists"
+        mkdir $version
+        tar zxvf $fname --strip-components=1 -C $version
+        cd $version 
+    else
+        echo "Downloading..."
+        url="_url"
+        url="$module$url"
+        if [ -z ${!url+x} ]; then
+            echo "Download url of $module not set. Please add it to $settingsdir/user.settings"
+            return 1
+        fi
+        url=${!url}
+        if ! wget "$url/$fname"; then
+            echo "Failed to download: $url/$fname"
+            return 1
+        fi
+        mkdir $version
+        tar zxvf $fname --strip-components=1 -C $version
+        cd $version 
+    fi
+    
+    set_site 'INSTALL_LOCATION' $dest
+    disable_config configure/CONFIG 'CROSS_COMP.*'
+
+    #set file configure release with target, the required modules and the optional ones
+    set_release_par "SUPPORT" $target
+    if ! set_requires "$module"; then
+        echo "Unable to satisfy all requirements"
+        return 1
+    fi
+    set_optionals "$module"
+
+    echo "Building..."
+    make clean > $verbose 2>&1
+    make > $verbose 2>&1
+};
+
+
 
 ##### Module Specific Compile Functions #####
 
@@ -370,40 +421,19 @@ function compile_base {
 };
 
 function compile_gensub {
-    #base="$(pwd)/bases/$2"
-    #support="$base/support"
-    dest="$support/gensub/$1"
-
-    fname="genSubV$1.tar.gz"
-    mkdir -p $src/gensub
-    cd $src/gensub
-    if [ -d $1 ]; then
-        echo "folder exists"
-        cd $1
-    elif [ -f $fname ]; then
-        echo "file exists"
-        mkdir $1
-        tar zxvf $fname --strip-components=1 -C $1
-        cd $1 
-    else
-        url="http://www.observatorysciences.co.uk/downloads/$fname"
-        echo "downloading"
-        wget $url
-        mkdir $1
-        tar zxvf $fname --strip-components=1 -C $1
-        cd $1 
-    fi
-    #EPICS_HOST_ARCH=$(src/epics-base/startup/EpicsHostArch)
-    #sed -i -e "s/^#INSTALL_LOCATION_APP.*/INSTALL_LOCATION_APP=$(echo $dest | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    set_config configure/CONFIG_SITE 'INSTALL_LOCATION' $dest
-    #sed -i -e "s/EPICS_BASE=.*/EPICS_BASE=$(echo $base | sed -e 's/\//\\\//g')/" configure/RELEASE    
-    set_release_par 'EPICS_BASE' $base
-    #sed -i -e "s/^\(CROSS_COMP.*\)/#\1/" configure/CONFIG    
-    disable_config configure/CONFIG 'CROSS_COMP'
+    module="gensub"
+    version="$1"
+    fname="genSubV$version.tar.gz"
     
-    echo "Building..."
-    make > $verbose 2>&1
-    #rm -rf $1
+    compile_file $module $version $fname
+};
+
+function compile_sncseq {
+    module="sncseq"
+    version="$1"
+    fname="seq-$version.tar.gz"
+    
+    compile_file $module $version $fname
 };
 
 function compile_streamdevice {
@@ -717,3 +747,4 @@ echo "--- Completed ---"
 
 # eliminare la possibilita' che un fallimento a meta' quando creo qualcosa lasci sporco
 # sistemare print
+# eliminare moduli eliminati da versione
