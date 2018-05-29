@@ -264,9 +264,9 @@ function set_requires {
         
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
-        for i in ${!modules[@]}; do
-            if [ ${modules[$i]} = $m ]; then
-                indx=$i
+        for j in ${!modules[@]}; do
+            if [ ${modules[$j]} = $m ]; then
+                indx=$j
                 break
             fi
         done
@@ -298,9 +298,9 @@ function set_optionals {
 
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
-        for i in ${!modules[@]}; do
-            if [ ${modules[$i]} = $m ]; then
-                indx=$i
+        for j in ${!modules[@]}; do
+            if [ ${modules[$j]} = $m ]; then
+                indx=$j
                 break
             fi
         done
@@ -603,10 +603,10 @@ function set_dbd_libs {
 function configureioc {
     #iterate on arrays and compile corresponding module
     echo "Configuring $top/configure/RELEASE"
-    for i in "${!modules[@]}"; do     
-        echo "Configuring ioc to use ${modules[$i]}-${versions[$i]}"
-        module_up="$(echo -e "${modules[$i]}" | tr '[:lower:]' '[:upper:]')" #to uppercase
-        set_release_par "$module_up" "\$(TOP)/modules/$confname/${modules[$i]}-${versions[$i]}"
+    for j in "${!modules[@]}"; do     
+        echo "Configuring ioc to use ${modules[$j]}-${versions[$j]}"
+        module_up="$(echo -e "${modules[$j]}" | tr '[:lower:]' '[:upper:]')" #to uppercase
+        set_release_par "$module_up" "\$(TOP)/modules/$confname/${modules[$j]}-${versions[$j]}"
     done
 
     configure_apps
