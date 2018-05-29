@@ -169,13 +169,6 @@ function prepare_git_src {
     #discard local changes
     git checkout -- . 
     
-    # _version_ is a special string to go to latest git release
-    if [ $version = "_latest_" ]; then 
-        version="$(git describe --abbrev=0 --tags)"
-        echo "Latest version is $version"
-        versions[$i]=$version  #to avoid being deleted at the end
-    fi
-    
     #checkout to the desired version (silencing detached head state)
     if ! git -c advice.detachedHead=false checkout "$version"; then
         echo "ERROR: Git version tag $version not found."
@@ -326,7 +319,8 @@ function set_optionals {
 function compile_git {
     module="$1"
     version="$2"   
-    
+    dest="$target/$module-$version"
+
     url="_url"
     url="$module$url"
     if [ -z ${!url+x} ]; then
@@ -337,8 +331,6 @@ function compile_git {
         return 1
     fi
     
-    #version may have changed if _latest_ used
-    dest="$target/$module-$version"
     cd $src/$module
     set_site 'INSTALL_LOCATION' $dest
 
