@@ -65,7 +65,7 @@ To remove it: ```sudo sh uninstall.sh```
 
 ## Settings
 
-It's possible to add a custom module to be compiled. This is achieved with the files located in ```~/.config/settings/```. Each file in this folder is imported during the execution of the script. If the module to be added can be found on a git repository the user simply has to define the following variables (example with asyn):
+It's possible to add a custom module to be compiled. This is achieved with the files located in ```~/.config/epicsmng/settings/```. Each file in this folder is imported during the execution of the script. If the module to be added can be found on a git repository the user simply has to define the following variables (example with asyn):
 
 ```
 asyn_url='https://github.com/epics-modules/asyn.git'
