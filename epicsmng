@@ -64,7 +64,7 @@ beckmotor_libs="beckMotor"
 modbus_url="https://github.com/epics-modules/modbus.git"
 modbus_requires="base asyn"
 modbus_optionals=""
-modbus_dbd="modbus.dbd"
+modbus_dbd="modbusSupport.dbd"
 modbus_libs="modbus"
 
 autosave_url="https://github.com/epics-modules/autosave.git"
