@@ -104,6 +104,7 @@ usr="$(whoami)"
 basedir="/home/$usr/.config/epicsmng"
 src="$basedir/src"
 settingsdir="$basedir/settings"
+patchesdir="$basedir/patches"
 
 if ! install -d $settingsdir; then
     echo "WARNING: cannot create user configuration directory $settingsdir"
@@ -112,6 +113,10 @@ fi
 if ! install -d $src; then
     echo "ERROR: cannot create source directory $src"
     exit 1
+fi
+
+if ! install -d $patchesdir; then
+    echo "WARNING: cannot create patches directory $patchesdir"
 fi
 
 #if configdir empty, populate it with example user config
@@ -175,6 +180,17 @@ function prepare_git_src {
         echo "Example of available versions are:"
         echo "$(git tag --sort=-version:refname | head -n 15)"
         return 1
+    fi
+
+    #apply user-supplied patches for this specific version
+    if [ -d $patchesdir/$module/$version ] && [ ! -z "$(ls -A $patchesdir/$module/$version)" ]; then
+        for file in $patchesdir/$module/$version/*; do
+            if ! git apply --check $file; then
+                echo "The patch $file is incompatible. Please fix it."
+                return 1
+            fi
+            git apply $file
+        done
     fi
     cd $top    
     return 0
