@@ -77,3 +77,21 @@ asyn_libs="asyn"
 replacing asyn with the name of the module. The ```mymodule_url``` varibale is the url of the git repository to be cloned. The ```mymodule_requires``` are the modules required to compile it, that is the ones to be added to its ```configure/RELEASE``` file. The ```mymodule_optionals``` are modules that can be added to the ```configure/RELEASE``` when available but are not strictly necessary. The ```mymodule_dbd``` variable is a list of dbd files which the installed module will generate and that can be included by an application. The ```mymodule_libs``` variable is a list of libraries which the installed module will generate and that can be included by an application. The last two are used by ```configureioc``` command to correctly set the ```*App/src/Makefile``` file.
 
 If the custom module is not a git repository, adding it is still possible but requires the definition of a custom function called ```compile_mymodule```. See the ```compile_sncseq``` inside ```epicsmng``` script for reference.
+
+## Patches
+
+In some occasions a specific version of a module requires some manual modifications to be correctly compiled on your machine. For example motor R6-10 on my pc needed the fix provided by a newer commit. Trying to do this manually on the src folder fails because the manual modifications are discarded each time the script is executed, before building the module. So a patches mechanism has been implemented to solve this problem.
+
+### Applying patches
+
+You can simply drop some git patch files inside ```~/.config/epicsmng/patches/<modulename>/<version>/```. These will be applied on top of that specific version after the ```git checkout``` but before the compilation.
+
+### Creating your own patches
+
+To create a new patch you can follow standard git procedures. For example you could go to the source folder, modify the files that you need and then run 
+
+```
+git diff <modified_files> > mypatch.patch
+```
+
+replacing ```<modified_files>``` whith the list of files you modified for this patch.
