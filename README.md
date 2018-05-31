@@ -23,15 +23,17 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
 
 ## Installation
 
-1) Download repository archive or git clone it
+1) Intall required packages: ```git build-essential``` (or equivalents).
 
-2) Unpack it if required
+2) Download repository archive or git clone it
 
-3) ```cd epicsmng```
+3) Unpack it if required
 
-4) ```sudo sh install.sh```
+4) ```cd epicsmng```
 
-5) Enjoy!
+5) ```sudo sh install.sh```
+
+6) Enjoy!
 
 To remove it: ```sudo sh uninstall.sh```
 
@@ -80,7 +82,7 @@ If the custom module is not a git repository, adding it is still possible but re
 
 ## Patches
 
-In some occasions a specific version of a module requires some manual modifications to be correctly compiled on your machine. For example motor R6-10 on my pc needed the fix provided by a newer commit. Trying to do this manually on the src folder fails because the manual modifications are discarded each time the script is executed, before building the module. So a patches mechanism has been implemented to solve this problem.
+In some occasions a specific version of a module requires some manual modifications to be correctly compiled on your machine. For example motor R6-10 on my pc needed the fix provided by a newer commit. Trying to do this manually on the src folder fails because the manual modifications are discarded each time the script is executed, before building the module. So a patches mechanism has been implemented to solve this problem. This is valid only for git modules.
 
 ### Applying patches
 
@@ -88,7 +90,7 @@ You can simply drop some git patch files inside ```~/.config/epicsmng/patches/<m
 
 ### Creating your own patches
 
-To create a new patch you can follow standard git procedures. For example you could go to the source folder, modify the files that you need and then run 
+To create a new patch you can follow standard git procedures. For example you could go to the source folder (```~/.config/epicsmng/settings/src/<module>/```), modify the files that you need and then run 
 
 ```
 git diff <modified_files> > mypatch.patch
