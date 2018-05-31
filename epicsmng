@@ -197,14 +197,14 @@ function prepare_git_src {
 }
 
 function set_makefile {
-    #echo $0 $1 $2 $3
+    echo " - Setting: $2 += $3"
     #file, token, value
     if grep -q -e "[# \t]*$2[ \t]*+=[ \t]*$3" $1 ; then
-        echo " - Using $3"
+        #echo " - Using $3"
         #the token is present, update it
         sed -i -e "s/[# \t]*$2[ \t]*+=[ \t]*$3/$2 += $3/" $1
     else if grep -q -e "^[# \t]*$2[ \t]*+=[^()$]*$" $1; then
-        echo " - Adding $3"
+        #echo " - Adding $3"
         # token not found, but found after: insert the token the line after
         linenum="$(grep -n -e "^[# \t]*$2[ \t]*+=[^()$]*$" $1 | cut -d : -f 1 | tail -n1)"
         sed -i ""$linenum"a\\$2 += $3" $1  #insert the line after
@@ -216,19 +216,20 @@ function set_makefile {
 }
 
 function set_config {
+    echo " - Setting: $2 = $3"
     #file, token, value, beforeof
     if grep -q -e "[# \t]*$2[ \t]*=" $1 ; then
         #the token is present, update it
-        echo " - Setting $3"
+        #echo " - Setting $3"
         sed -i -e "s/[# \t]*$2[ \t]*=.*/$2=$(echo $3 | sed -e 's/\//\\\//g')/" $1
     else if grep -q -e "[# \t]*$4[ \t]*=" $1; then
         # token not found, but found beforeof: insert the token the line before
-        echo " - Adding $3"
+        #echo " - Adding $3"
         linenum="$(grep -n -e "[# \t]*$4[ \t]*=" $1 | cut -d : -f 1 | head -n1)"
         sed -i ""$linenum"i\\$2=$3" $1  #insert the line before $4
     else
         #else: write it at the end of file
-        echo " - Adding $3"
+        #echo " - Adding $3"
         echo "$2=$3" >> $1
     fi
     fi
@@ -236,6 +237,7 @@ function set_config {
 
 function disable_config {
     #file, token
+    echo " - Commenting: $2"
     sed -i -e "s/\([ \t]*$2[ \t]*=.*\)/# \1/" $1
 }
 
@@ -272,7 +274,7 @@ function set_requires {
     requires="_requires"
     requires=$mod_to_build$requires  #something like asyn_requires
     for m in ${!requires}; do   #expanded to $asyn_requires
-        echo "$mod_to_build requires $m"
+        #echo "$mod_to_build requires $m"
         module_up="$(echo -e "$m" | tr '[:lower:]' '[:upper:]')" #to uppercase
         if [ "$module_up" == 'BASE' ]; then
             module_up='EPICS_BASE'
@@ -306,7 +308,7 @@ function set_optionals {
     optionals="_optionals"
     optionals=$mod_to_build$optionals  #something like asyn_optionals
     for m in ${!optionals}; do   #expanded to $asyn_optionals
-        echo "$mod_to_build can link to $m"
+        #echo "$mod_to_build can link to $m"
         module_up="$(echo -e "$m" | tr '[:lower:]' '[:upper:]')" #to uppercase
         if [ "$module_up" == 'BASE' ]; then
             module_up='EPICS_BASE'
@@ -323,10 +325,8 @@ function set_optionals {
 
         #if not found, comment it in configure/RELEASE, else uncomment and set path
         if [ "$indx" = -1 ]; then 
-            echo " - Commenting $module_up"
             disable_release_par "$module_up"
         else
-            echo " - Setting $module_up"
             set_release_par "$module_up" "$target/$m-${versions[$indx]}"
         fi
     done
@@ -577,7 +577,8 @@ function configure_apps {
     cd $top
     folders="$(ls -d *App)"
     for d in "$folders"; do
-        echo "Configuring $d/src/Makefile"
+        echo ""
+        echo "Configuring $top/$d/src/Makefile"
         set_dbd_libs $d/src/Makefile "${d: : -3}" "dbd"    
         set_dbd_libs $d/src/Makefile "${d: : -3}" "libs"
     done
@@ -610,7 +611,7 @@ function set_dbd_libs {
             done
         done
         if [ "$found" = false  ]; then
-            echo " - Commenting $set"
+            echo " - Commenting: $set"
             sed -i "s/.*$line/#&/" $file
         fi
     done < <(grep -e "^[ \t]*$appname[ \t]*+=.*[ \t]*\(#.*\)*$" $file)
@@ -618,9 +619,10 @@ function set_dbd_libs {
 
 function configureioc {
     #iterate on arrays and compile corresponding module
+    echo ""
     echo "Configuring $top/configure/RELEASE"
     for j in "${!modules[@]}"; do     
-        echo "Configuring ioc to use ${modules[$j]}-${versions[$j]}"
+        #echo "Configuring ioc to use ${modules[$j]}-${versions[$j]}"
         module_up="$(echo -e "${modules[$j]}" | tr '[:lower:]' '[:upper:]')" #to uppercase
         set_release_par "$module_up" "\$(TOP)/modules/$confname/${modules[$j]}-${versions[$j]}"
     done
