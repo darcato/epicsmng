@@ -23,7 +23,11 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
 
 ## Installation
 
-1) Install required packages: ```git build-essential``` (or equivalents).
+1) Install required packages: 
+   
+   Ubuntu/Debian: ```sudo apt install git build-essential libreadline-dev re2c```
+   
+   CentOS/RHEL: ```sudo yum install git readline-devel make gcc gcc-c++```
 
 2) Download repository archive or git clone it
 
