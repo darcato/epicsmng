@@ -106,22 +106,22 @@ src="$basedir/src"
 settingsdir="$basedir/settings"
 patchesdir="$basedir/patches"
 
-if ! install -d $settingsdir; then
+if ! install -d "$settingsdir"; then
     echo "WARNING: cannot create user configuration directory $settingsdir"
 fi
 
-if ! install -d $src; then
+if ! install -d "$src"; then
     echo "ERROR: cannot create source directory $src"
     exit 1
 fi
 
-if ! install -d $patchesdir; then
+if ! install -d "$patchesdir"; then
     echo "WARNING: cannot create patches directory $patchesdir"
 fi
 
 #if configdir empty, populate it with example user config
-if [ -z "$(ls -A $settingsdir)" ]; then
-    cat >$settingsdir/user.settings <<EOF
+if [ -z "$(ls -A "$settingsdir")" ]; then
+    cat >"$settingsdir"/user.settings <<EOF
 #!/bin/bash
 # Davide Marcato 2018
 # Example of user settings for epicsmng
@@ -141,7 +141,7 @@ fi
 
 #run user-supplied config files
 for file in $settingsdir/*; do
-  source $file
+  source "$file"
 done
 
 ##### Common utilities #####
@@ -154,7 +154,7 @@ function prepare_git_src {
     module="$2"
     version="$3"
     
-    cd $src
+    cd "$src" || return 1
     #create folder with same name as module if not already present
     if [ ! -d "$module" ]; then
         echo "Cloning from repo $remote"
@@ -162,9 +162,9 @@ function prepare_git_src {
             echo "ERROR: Git clone failed."
             return 1
         fi
-        cd "$module"
+        cd "$module" || return 1
     else  #if already present, simply fetch updates
-        cd "$module"
+        cd "$module" || return 1
         echo "Updating from repo $remote"
         if ! git fetch --all; then
             echo "WARNING: Git fetch failed."
@@ -178,77 +178,75 @@ function prepare_git_src {
     if ! git -c advice.detachedHead=false checkout "$version"; then
         echo "ERROR: Git version tag $version not found."
         echo "Example of available versions are:"
-        echo "$(git tag --sort=-version:refname | head -n 15)"
+        git tag --sort=-version:refname | head -n 15
         return 1
     fi
 
     #apply user-supplied patches for this specific version
-    if [ -d $patchesdir/$module/$version ] && [ ! -z "$(ls -A $patchesdir/$module/$version)" ]; then
-        for file in $patchesdir/$module/$version/*; do
-            if ! git apply --check $file; then
+    if [ -d "$patchesdir/$module/$version" ] && [ ! -z "$(ls -A "$patchesdir/$module/$version")" ]; then
+        for file in "$patchesdir/$module/$version"/*; do
+            if ! git apply --check "$file"; then
                 echo "The patch $file is incompatible. Please fix it."
                 return 1
             fi
-            git apply $file
+            git apply "$file"
         done
     fi
-    cd $top    
+    cd "$top" || return 1    
     return 0
 }
 
 function set_makefile {
     echo " - Setting: $2 += $3"
     #file, token, value
-    if grep -q -e "[# \t]*$2[ \t]*+=[ \t]*$3" $1 ; then
+    if grep -q -e "[# \t]*$2[ \t]*+=[ \t]*$3" "$1" ; then
         #echo " - Using $3"
         #the token is present, update it
-        sed -i -e "s/[# \t]*$2[ \t]*+=[ \t]*$3/$2 += $3/" $1
-    else if grep -q -e "^[# \t]*$2[ \t]*+=[^()$]*$" $1; then
+        sed -i -e "s/[# \t]*$2[ \t]*+=[ \t]*$3/$2 += $3/" "$1"
+    elif grep -q -e "^[# \t]*$2[ \t]*+=[^()$]*$" "$1"; then
         #echo " - Adding $3"
         # token not found, but found after: insert the token the line after
-        linenum="$(grep -n -e "^[# \t]*$2[ \t]*+=[^()$]*$" $1 | cut -d : -f 1 | tail -n1)"
-        sed -i ""$linenum"a\\$2 += $3" $1  #insert the line after
+        linenum="$(grep -n -e "^[# \t]*$2[ \t]*+=[^()$]*$" "$1" | cut -d : -f 1 | tail -n1)"
+        sed -i ""$linenum"a\\$2 += $3" "$1"  #insert the line after
     else
         #else: write it at the end of file
         echo "Cannot determine where to write the dbd. Ignoring $3"
     fi
-    fi 
 }
 
 function set_config {
     echo " - Setting: $2 = $3"
     #file, token, value, beforeof
-    if grep -q -e "[# \t]*$2[ \t]*=" $1 ; then
+    if grep -q -e "[# \t]*$2[ \t]*=" "$1" ; then
         #the token is present, update it
         #echo " - Setting $3"
-        sed -i -e "s/[# \t]*$2[ \t]*=.*/$2=$(echo $3 | sed -e 's/\//\\\//g')/" $1
-    else if grep -q -e "[# \t]*$4[ \t]*=" $1; then
+        sed -i -e "s/[# \t]*$2[ \t]*=.*/$2=$(echo "$3" | sed -e 's/\//\\\//g')/" "$1"
+    elif grep -q -e "[# \t]*$4[ \t]*=" "$1"; then
         # token not found, but found beforeof: insert the token the line before
         #echo " - Adding $3"
-        linenum="$(grep -n -e "[# \t]*$4[ \t]*=" $1 | cut -d : -f 1 | head -n1)"
-        sed -i ""$linenum"i\\$2=$3" $1  #insert the line before $4
+        linenum="$(grep -n -e "[# \t]*$4[ \t]*=" "$1" | cut -d : -f 1 | head -n1)"
+        sed -i ""$linenum"i\\$2=$3" "$1"  #insert the line before $4
     else
         #else: write it at the end of file
         #echo " - Adding $3"
-        echo "$2=$3" >> $1
-    fi
+        echo "$2=$3" >> "$1"
     fi
 }
 
 function disable_config {
     #file, token
     echo " - Commenting: $2"
-    sed -i -e "s/\([ \t]*$2[ \t]*=.*\)/# \1/" $1
+    sed -i -e "s/\([ \t]*$2[ \t]*=.*\)/# \1/" "$1"
 }
 
 function set_release_par {
     #token, value
-    set_config configure/RELEASE $1 $2 "EPICS_BASE"
+    set_config configure/RELEASE "$1" "$2" "EPICS_BASE"
 }
 
 function disable_release_par {
     #token
-    disable_config configure/RELEASE $1
+    disable_config configure/RELEASE "$1"
 }
 
 function set_site {
@@ -262,7 +260,7 @@ function set_site {
 
     #if not present exactly as required -> you are changing version    
     #if ! grep -q -e "^[ \t]*$str[ \t]*=[ \t]*$dest/\?[ \t]*\(#.*\)*$" $file; then
-        set_config $file "$str" $dest
+        set_config "$file" "$str" "$dest"
     #fi
 }
 
@@ -283,7 +281,7 @@ function set_requires {
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
         for j in ${!modules[@]}; do
-            if [ ${modules[$j]} = $m ]; then
+            if [ "${modules[$j]}" = "$m" ]; then
                 indx=$j
                 break
             fi
@@ -317,7 +315,7 @@ function set_optionals {
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
         for j in ${!modules[@]}; do
-            if [ ${modules[$j]} = $m ]; then
+            if [ "${modules[$j]}" = "$m" ]; then
                 indx=$j
                 break
             fi
@@ -339,19 +337,19 @@ function compile_git {
 
     url="_url"
     url="$module$url"
-    if [ -z ${!url+x} ]; then
+    if [ -z "${!url+x}" ]; then
         echo "Download url of $module not set. Please add it to $settingsdir/user.settings"
         return 1
     fi
-    if ! prepare_git_src ${!url} "$module" "$version"; then
+    if ! prepare_git_src "${!url}" "$module" "$version"; then
         return 1
     fi
     
-    cd $src/$module
-    set_site 'INSTALL_LOCATION' $dest
+    cd "$src"/"$module" || return 1
+    set_site 'INSTALL_LOCATION' "$dest"
 
     #set file configure release with target, the required modules and the optional ones
-    set_release_par "SUPPORT" $target
+    set_release_par "SUPPORT" "$target"
     if ! set_requires "$module"; then
         echo "Unable to satisfy all requirements"
         return 1
@@ -359,8 +357,8 @@ function compile_git {
     set_optionals "$module"
 
     echo "Building..."
-    make clean > $verbose 2>&1
-    make > $verbose 2>&1
+    make clean > "$verbose" 2>&1
+    make > "$verbose" 2>&1
 }
 
 function compile_file {
@@ -369,21 +367,21 @@ function compile_file {
     fname="$3"
     dest="$target/$module-$version"
 
-    mkdir -p $src/$module
-    cd $src/$module
-    if [ -d $version ]; then
+    mkdir -p "$src/$module"
+    cd "$src/$module" || return 1
+    if [ -d "$version" ]; then
         echo "folder exists"
-        cd $version
-    elif [ -f $fname ]; then
+        cd "$version" || return 1
+    elif [ -f "$fname" ]; then
         echo "file exists"
-        mkdir $version
-        tar zxvf $fname --strip-components=1 -C $version
-        cd $version 
+        mkdir "$version"
+        tar zxvf "$fname" --strip-components=1 -C "$version"
+        cd "$version" || return 1
     else
         echo "Downloading..."
         url="_url"
         url="$module$url"
-        if [ -z ${!url+x} ]; then
+        if [ -z "${!url+x}" ]; then
             echo "Download url of $module not set. Please add it to $settingsdir/user.settings"
             return 1
         fi
@@ -392,16 +390,16 @@ function compile_file {
             echo "Failed to download: $url/$fname"
             return 1
         fi
-        mkdir $version
-        tar zxvf $fname --strip-components=1 -C $version
-        cd $version 
+        mkdir "$version"
+        tar zxvf "$fname" --strip-components=1 -C "$version"
+        cd "$version" || return 1
     fi
     
-    set_site 'INSTALL_LOCATION' $dest
+    set_site 'INSTALL_LOCATION' "$dest"
     disable_config configure/CONFIG 'CROSS_COMP.*'
 
     #set file configure release with target, the required modules and the optional ones
-    set_release_par "SUPPORT" $target
+    set_release_par "SUPPORT" "$target"
     if ! set_requires "$module"; then
         echo "Unable to satisfy all requirements"
         return 1
@@ -409,8 +407,8 @@ function compile_file {
     set_optionals "$module"
 
     echo "Building..."
-    make clean > $verbose 2>&1
-    make > $verbose 2>&1
+    make clean > "$verbose" 2>&1
+    make > "$verbose" 2>&1
 };
 
 
@@ -424,12 +422,13 @@ function compile_base {
         return 1
     fi
 
-    cp -r startup $dest/
+    cp -r startup "$dest/"
     if [ -d config ]; then
-        cp -r config $dest/
+        cp -r config "$dest/"
     fi
 
-    export EPICS_HOST_ARCH="$($dest/startup/EpicsHostArch)"
+    EPICS_HOST_ARCH="$("$dest"/startup/EpicsHostArch)"
+    export EPICS_HOST_ARCH
     export base="$dest"
 };
 
@@ -438,7 +437,7 @@ function compile_gensub {
     version="$1"
     fname="genSubV$version.tar.gz"
     
-    compile_file $module $version $fname
+    compile_file "$module" "$version" "$fname"
 };
 
 function compile_sncseq {
@@ -446,7 +445,7 @@ function compile_sncseq {
     version="$1"
     fname="seq-$version.tar.gz"
     
-    compile_file $module $version $fname
+    compile_file "$module" "$version" "$fname"
 };
 
 function compile_streamdevice {
@@ -454,18 +453,18 @@ function compile_streamdevice {
     version="$1"
     dest="$target/$module-$version"
     
-    cd $src
+    cd "$src" || return 1
     if [ ! -d "$module" ]; then
         mkdir "$module";
-        cd $module
-        $base/bin/$EPICS_HOST_ARCH/makeBaseApp.pl -t support empty
+        cd "$module" || return 1
+        "$base"/bin/"$EPICS_HOST_ARCH"/makeBaseApp.pl -t support empty
         if ! git clone "$streamdevice_url" "$module"; then
             echo "ERRORE: Git clone failed. Check connection."
             return 1
         fi
-        cd $module
+        cd "$module" || return 1
     else
-        cd "$module/$module"
+        cd "$module/$module" || return 1
         echo "Updating from repo $remote"
         if ! git fetch --all; then
             echo "Git fetch failed"
@@ -480,8 +479,8 @@ function compile_streamdevice {
         return 1
     fi
     
-    cd $src/$module
-    set_site 'INSTALL_LOCATION' $dest
+    cd "$src/$module" || return 1
+    set_site 'INSTALL_LOCATION' "$dest"
     
     #set file configure release with target, the required modules and the optional ones
     #set_release_par "SUPPORT" $target
@@ -492,8 +491,8 @@ function compile_streamdevice {
     set_optionals "$module"
 
     echo "Building..."
-    make -C $module --makefile Makefile clean > $verbose 2>&1
-    make -C $module --makefile Makefile > $verbose 2>&1
+    make -C $module --makefile Makefile clean > "$verbose" 2>&1
+    make -C $module --makefile Makefile > "$verbose" 2>&1
 }
 
 ##### Makemodules #####
@@ -501,16 +500,16 @@ function compile_streamdevice {
 function makemodules {  
     
     #create modules folder if not present
-    if [ ! -d $modulespath ]; then
-        if ! mkdir $modulespath; then
+    if [ ! -d "$modulespath" ]; then
+        if ! mkdir "$modulespath"; then
             echo "Cannot create modules folder $modulespath"
             exit 1
         fi
     fi
 
     #create configuration folder if not present
-    if [ ! -d $target ]; then
-        if ! mkdir $target; then
+    if [ ! -d "$target" ]; then
+        if ! mkdir "$target"; then
             echo "Cannot create configuration folder $target"
             exit 1
         fi
@@ -545,14 +544,14 @@ function makemodules {
     for dir in $target/*/ ; do
         found=false
         for i in "${!modules[@]}"; do  
-            if [ "${modules[$i]}-${versions[$i]}" = "$(basename $dir)" ]; then
+            if [ "${modules[$i]}-${versions[$i]}" = "$(basename "$dir")" ]; then
                 found=true
                 break
             fi
         done
         if [ "$found" = false  ]; then
             echo "Removing unused module $dir"
-            rm -rf $dir
+            rm -rf "$dir"
         fi
     done
 
@@ -567,20 +566,20 @@ function cleanmodules {
         exit 1
     else
         echo "Removing $target"
-        rm -rf $target
+        rm -rf "$target"
     fi
 }
 
 ##### Configureioc #####
 
 function configure_apps {
-    cd $top
+    cd "$top" || return 1
     folders="$(ls -d *App)"
-    for d in "$folders"; do
+    for d in $folders; do
         echo ""
         echo "Configuring $top/$d/src/Makefile"
-        set_dbd_libs $d/src/Makefile "${d: : -3}" "dbd"    
-        set_dbd_libs $d/src/Makefile "${d: : -3}" "libs"
+        set_dbd_libs "$d/src/Makefile" "${d: : -3}" "dbd"    
+        set_dbd_libs "$d/src/Makefile" "${d: : -3}" "libs"
     done
 }
 
@@ -593,18 +592,18 @@ function set_dbd_libs {
     for m in "${modules[@]}"; do     
         dbds=$m"_"$type  #something like asyn_dbd
         for dbd in ${!dbds}; do
-            set_makefile $file $appname $dbd
+            set_makefile "$file" "$appname" "$dbd"
         done
     done
 
     #then comment lines containing dbds not in this configuration
     while read -r line ; do
-        set="$(echo $line | grep -o -e "\S*[ \t]*\(#.*\)*$")"
+        set="$(echo "$line" | grep -o -e "\S*[ \t]*\(#.*\)*$")"
         found=false
         for m in "${modules[@]}"; do     
             dbds=$m"_"$type  #something like asyn_dbd
             for _d in ${!dbds}; do
-                if [ $set = $_d ]; then
+                if [ "$set" = "$_d" ]; then
                     found=true
                     break
                 fi
@@ -612,9 +611,9 @@ function set_dbd_libs {
         done
         if [ "$found" = false  ]; then
             echo " - Commenting: $set"
-            sed -i "s/.*$line/#&/" $file
+            sed -i "s/.*$line/#&/" "$file"
         fi
-    done < <(grep -e "^[ \t]*$appname[ \t]*+=.*[ \t]*\(#.*\)*$" $file)
+    done < <(grep -e "^[ \t]*$appname[ \t]*+=.*[ \t]*\(#.*\)*$" "$file")
 }
 
 function configureioc {
@@ -630,14 +629,14 @@ function configureioc {
     configure_apps
 
     #if gitignore not present, but top is a git repo -> create gitignore
-    if [ ! -r $top/.gitignore ] && [ -d $top/.git ]; then
-        touch $top/.gitignore
+    if [ ! -r "$top/.gitignore" ] && [ -d "$top/.git" ]; then
+        touch "$top/.gitignore"
     fi
 
     #if gitignore is present but modules/ is not listed, add it
-    if [ -r $top/.gitignore ]; then
-        if ! grep -q -F "modules/" $top/.gitignore; then
-            echo "modules/" >> $top/.gitignore
+    if [ -r "$top/.gitignore" ]; then
+        if ! grep -q -F "modules/" "$top/.gitignore"; then
+            echo "modules/" >> "$top/.gitignore"
         fi
     fi
 }
@@ -686,7 +685,7 @@ shift 1  #shift so that now optional args are first (required by optargs)
 while getopts ":C:j:v" o; do
     case "${o}" in
         C)
-            top="$(realpath ${OPTARG})"  #save absolute path in top
+            top="$(realpath "${OPTARG}")"  #save absolute path in top
             ;;
         j)  export MAKEOPTS='-j${OPTARG}'
             export MAKEFLAGS='-j${OPTARG}'
@@ -706,7 +705,7 @@ if [ -z "$top" ]; then
     usage
 fi
 
-if [ $command != "listmodules" ]; then
+if [ "$command" != "listmodules" ]; then
     # There must be the configuration file
     if [ $# -ne 1 ]; then
         usage
@@ -747,7 +746,7 @@ if [ $command != "listmodules" ]; then
     done < "$tmpfile"
     rm "$tmpfile"
 
-    if [ ${modules[0]} != "base" ] && [ ${modules[0]} != "Base" ] && [ ${modules[0]} != "BASE" ]; then
+    if [ "${modules[0]}" != "base" ]; then
         echo "ERROR: base must be the first module in the configuration"
         exit 0
     fi
