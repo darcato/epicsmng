@@ -1,4 +1,4 @@
-image: shellcheck:latest
+image: koalaman/shellcheck:latest
 
 before_script:
   - cd $CI_PROJECT_DIR
