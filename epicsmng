@@ -577,6 +577,7 @@ function configure_apps {
     cd "$top" || return 1
     folders="$(ls -d ./*App)"
     for d in $folders; do
+        d="$(basename "$d")"
         echo ""
         echo "Configuring $top/$d/src/Makefile"
         set_dbd_libs "$d/src/Makefile" "${d: : -3}" "dbd"    
