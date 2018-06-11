@@ -1,6 +1,6 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
-if [ "`id -u`" -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
     echo "Please run as superuser"
     exit 1
 fi
@@ -16,6 +16,6 @@ if ! rm -f $dest/epicsmng; then
 fi
 
 rm -f /etc/bash_completion.d/epicsmng-completion.bash
-rm -rf /home/$(logname)/.config/epicsmng/src/
+rm -rf /home/"$(logname)"/.config/epicsmng/src/
 
 echo "Done!"
