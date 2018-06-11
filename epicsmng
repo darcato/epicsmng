@@ -189,6 +189,7 @@ function prepare_git_src {
                 echo "The patch $file is incompatible. Please fix it."
                 return 1
             fi
+            echo " - Applying patch: $(basename "$file")"
             git apply "$file"
         done
     fi
@@ -656,7 +657,7 @@ verbose="/dev/null"  #verbosity: default=non verbose
 
 usage() { 
     echo ""
-    echo "USAGE: $0 command args"
+    echo "USAGE: $(basename "$0") command args"
     echo "     command - one of the supported commands"
     echo "     args    - the command arguments"
     echo ""
@@ -664,6 +665,7 @@ usage() {
     echo " - makemodules [-C <path>] [-j <n>] [-v] configuration"
     echo " - cleanmodules [-C <path>] configuration"
     echo " - configureioc [-C <path>] configuration"
+    echo " - listmodules"
     echo ""
     echo "Arguments:"
     echo " - configuration - a file describing the epics modules to be installed"
