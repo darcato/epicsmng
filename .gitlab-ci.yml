@@ -1,12 +1,10 @@
-image: koalaman/shellcheck:latest
-
-before_script:
-  - cd $CI_PROJECT_DIR
+image: koalaman/shellcheck-alpine:stable
    
 shellcheck:
   script: 
-    - echo "Analyzing syntax"
-#    - shellcheck -e SC2034,SC1090 ./epicsmng
-#    - shellcheck -e SC2034,SC1090 ./install.sh
-#    - shellcheck -e SC2034,SC1090 ./uninstall.sh
-#    - shellcheck -e SC2034,SC1090 ./epicsmng-completion.bash
+  #run shellcheck on all scripts
+  #ignore warnings on unused variables and non costant source (imported files)
+    - shellcheck -e SC2034,SC1090 ./epicsmng
+    - shellcheck -e SC2034,SC1090 ./install.sh
+    - shellcheck -e SC2034,SC1090 ./uninstall.sh
+    - shellcheck -e SC2034,SC1090 ./epicsmng-completion.bash
