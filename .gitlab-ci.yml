@@ -1,0 +1,8 @@
+image: ubuntu:latest
+
+before_script:
+  - cd $CI_PROJECT_DIR
+   
+shellcheck:
+  script: 
+    - shellcheck -e SC2034,SC1090 ./epicsmng
