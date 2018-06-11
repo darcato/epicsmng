@@ -728,8 +728,6 @@ if [ "$command" != "listmodules" ]; then
     target="$modulespath/$confname"
 
     #parse config file
-    tmpfile=$(mktemp)  #create temporary file
-    grep -o '^[^#]*' "$configfile" > "$tmpfile"  #a copy without comments
     declare -a modules #an array to store found modules
     declare -a versions #an array to store found versions
     while IFS='=' read -r module version
@@ -743,8 +741,7 @@ if [ "$command" != "listmodules" ]; then
             versions+=( "$version" ) #add to array
             echo "  $module - $version"
         fi
-    done < "$tmpfile"
-    rm "$tmpfile"
+    done < <(grep -o '^[^#]*' "$configfile") #a copy without comments
 
     if [ "${modules[0]}" != "base" ]; then
         echo "ERROR: base must be the first module in the configuration"
