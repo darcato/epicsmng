@@ -23,7 +23,11 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
 
 ## Installation
 
-1) Intall required packages: ```git build-essential``` (or equivalents).
+1) Install required packages: 
+   
+   Ubuntu/Debian: ```sudo apt install git build-essential libreadline-dev re2c```
+   
+   CentOS/RHEL: ```sudo yum install git readline-devel make gcc gcc-c++```
 
 2) Download repository archive or git clone it
 
@@ -76,7 +80,7 @@ asyn_optionals="sncseq ipac"
 asyn_dbd="asyn.dbd drvAsynIPPort.dbd drvAsynSerialPort.dbd"
 asyn_libs="asyn"
 ```
-replacing asyn with the name of the module. The ```mymodule_url``` varibale is the url of the git repository to be cloned. The ```mymodule_requires``` are the modules required to compile it, that is the ones to be added to its ```configure/RELEASE``` file. The ```mymodule_optionals``` are modules that can be added to the ```configure/RELEASE``` when available but are not strictly necessary. The ```mymodule_dbd``` variable is a list of dbd files which the installed module will generate and that can be included by an application. The ```mymodule_libs``` variable is a list of libraries which the installed module will generate and that can be included by an application. The last two are used by ```configureioc``` command to correctly set the ```*App/src/Makefile``` file.
+replacing asyn with the name of the module. The ```mymodule_url``` variable is the url of the git repository to be cloned. The ```mymodule_requires``` are the modules required to compile it, that is the ones to be added to its ```configure/RELEASE``` file. The ```mymodule_optionals``` are modules that can be added to the ```configure/RELEASE``` when available but are not strictly necessary. The ```mymodule_dbd``` variable is a list of dbd files which the installed module will generate and that can be included by an application. The ```mymodule_libs``` variable is a list of libraries which the installed module will generate and that can be included by an application. The last two are used by ```configureioc``` command to correctly set the ```*App/src/Makefile``` file.
 
 If the custom module is not a git repository, adding it is still possible but requires the definition of a custom function called ```compile_mymodule```. See the ```compile_sncseq``` inside ```epicsmng``` script for reference.
 
