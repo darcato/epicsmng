@@ -207,7 +207,7 @@ function set_makefile {
         #echo " - Adding $3"
         # token not found, but found after: insert the token the line after
         linenum="$(grep -n -e "^[# \t]*$2[ \t]*+=[^()$]*$" "$1" | cut -d : -f 1 | tail -n1)"
-        sed -i ""$linenum"a\\$2 += $3" "$1"  #insert the line after
+        sed -i "${linenum}a\\$2 += $3" "$1"  #insert the line after
     else
         #else: write it at the end of file
         echo "Cannot determine where to write the dbd. Ignoring $3"
@@ -225,7 +225,7 @@ function set_config {
         # token not found, but found beforeof: insert the token the line before
         #echo " - Adding $3"
         linenum="$(grep -n -e "[# \t]*$4[ \t]*=" "$1" | cut -d : -f 1 | head -n1)"
-        sed -i ""$linenum"i\\$2=$3" "$1"  #insert the line before $4
+        sed -i "${linenum}i\\$2=$3" "$1"  #insert the line before $4
     else
         #else: write it at the end of file
         #echo " - Adding $3"
@@ -280,7 +280,7 @@ function set_requires {
         
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
-        for j in ${!modules[@]}; do
+        for j in "${!modules[@]}"; do
             if [ "${modules[$j]}" = "$m" ]; then
                 indx=$j
                 break
@@ -314,7 +314,7 @@ function set_optionals {
 
         #search for the required module inside the modules to be installed  --TODO: change to installed ones
         indx=-1
-        for j in ${!modules[@]}; do
+        for j in "${!modules[@]}"; do
             if [ "${modules[$j]}" = "$m" ]; then
                 indx=$j
                 break
@@ -574,7 +574,7 @@ function cleanmodules {
 
 function configure_apps {
     cd "$top" || return 1
-    folders="$(ls -d *App)"
+    folders="$(ls -d ./*App)"
     for d in $folders; do
         echo ""
         echo "Configuring $top/$d/src/Makefile"
@@ -687,8 +687,8 @@ while getopts ":C:j:v" o; do
         C)
             top="$(realpath "${OPTARG}")"  #save absolute path in top
             ;;
-        j)  export MAKEOPTS='-j${OPTARG}'
-            export MAKEFLAGS='-j${OPTARG}'
+        j)  export MAKEOPTS="-j$OPTARG"
+            export MAKEFLAGS="-j$OPTARG"
             ;;
         v)  verbose="/dev/stdout" #more verbose
             ;;
@@ -732,7 +732,7 @@ if [ "$command" != "listmodules" ]; then
     grep -o '^[^#]*' "$configfile" > "$tmpfile"  #a copy without comments
     declare -a modules #an array to store found modules
     declare -a versions #an array to store found versions
-    while IFS='=' read module version
+    while IFS='=' read -r module version
     do
         if [[ $version ]]
         then
