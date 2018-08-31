@@ -69,6 +69,24 @@ To remove it: ```sudo sh uninstall.sh```
 
 4. Run ```make``` to compile the ioc as usual.
 
+## Available modules
+
+* asyn
+* autosave
+* base
+* beckmotor
+* busy
+* calc
+* gensub
+* ipac
+* modbus
+* motor
+* sncseq
+* sscan
+* streamdevice  -> NOTE: only versions 2.8+ are supported
+
+And many more can be added by the user, see Settings!
+
 ## Settings
 
 It's possible to add a custom module to be compiled. This is achieved with the files located in ```~/.config/epicsmng/settings/```. Each file in this folder is imported during the execution of the script. If the module to be added can be found on a git repository the user simply has to define the following variables (example with asyn):
