@@ -44,8 +44,8 @@ ipac_dbd="ipac.dbd"
 ipac_libs="ipac"
 
 streamdevice_url="https://github.com/paulscherrerinstitute/StreamDevice.git"
-streamdevice_requires="base"
-streamdevice_optionals=""
+streamdevice_requires="base asyn"
+streamdevice_optionals="calc"
 streamdevice_dbd="stream.dbd"
 streamdevice_libs="stream"
 
@@ -348,6 +348,8 @@ function compile_git {
     
     cd "$src"/"$module" || return 1
     set_site 'INSTALL_LOCATION' "$dest"
+
+    truncate -s 0 configure/RELEASE
 
     #set file configure release with target, the required modules and the optional ones
     set_release_par "SUPPORT" "$target"
