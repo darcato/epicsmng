@@ -452,7 +452,7 @@ function compile_sncseq {
 };
 
 function compile_stream {
-    return compile_git "streamdevice" "$@"
+    return "$(compile_git "streamdevice" "$@")"
 }
 
 ##### Makemodules #####
