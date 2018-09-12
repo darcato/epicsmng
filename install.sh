@@ -16,5 +16,6 @@ if ! install -m 755 ./epicsmng $dest; then
 fi
 
 install -m 644 ./epicsmng-completion.bash /etc/bash_completion.d/
+rm -rf /home/"$(logname)"/.config/epicsmng/src/
 
 echo "Done!"
