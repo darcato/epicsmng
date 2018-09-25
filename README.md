@@ -2,6 +2,8 @@
 
 ## A tool to easily download and install epics modules
 
+_Developers_: Damiano Bortolato - Davide Marcato @ Laboratori Nazionali di Legnaro - INFN
+
 _epicsmng_ will read a configuration file and install all the listed modules with the required version. This works by downloading the source, performing a git fetch and git checkout to the correct version. After that the modules are configured and built against each another.
 
 For example, given the following configuration ```myconf.conf```:
