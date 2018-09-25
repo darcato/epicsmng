@@ -9,8 +9,14 @@ _epicsmng_ will read a configuration file and install all the listed modules wit
 For example, given the following configuration ```myconf.conf```:
 
 ```
-base = v3.15.5
+base = R3.15.5
 asyn = R4-33
+modbus = R2-10-1
+calc = R3-7
+streamdevice = 2.8.3
+motor = R6-10
+beckmotor = v2.1.2
+autosave = R5-9
 ```
 
 by running 
@@ -19,7 +25,7 @@ by running
 epicsmng makemodules myconf.conf
 ```
 
-both will be downloaded, built and installed, with asyn configured to be use that specific version of base. Inter-depencecies are automatically resolved.
+all the specified modules will be downloaded, built and installed (in order). If a module requires another one to compile, they are automatically linked! Just rember to put the required module higher in the list.
 
 The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myconf/``` folder, with respect to the path where the script has been executed.
 
