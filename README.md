@@ -77,6 +77,8 @@ To remove it: ```sudo sh uninstall.sh```
 
 4. Run ```make``` to compile the ioc as usual.
 
+More guides are available on the [epicsmng wiki](https://github.com/darcato/epicsmng/wiki).
+
 ## Available modules
 
 * asyn
