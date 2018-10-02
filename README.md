@@ -122,7 +122,7 @@ You can simply drop some git patch files inside ```~/.config/epicsmng/patches/<m
 
 ### Creating your own patches
 
-To create a new patch you can follow standard git procedures. For example you could go to the source folder (```~/.config/epicsmng/settings/src/<module>/```), modify the files that you need and then run 
+To create a new patch you can follow standard git procedures. For example you could go to the source folder (```~/.local/share/epicsmng/src/<module>/```), modify the files that you need and then run 
 
 ```
 git diff <modified_files> > mypatch.patch
