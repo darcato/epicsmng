@@ -16,11 +16,11 @@ if ! install -m 755 ./epicsmng $dest; then
 fi
 
 install -m 644 ./epicsmng-completion.bash /etc/bash_completion.d/
-rm -rf $HOME/.config/epicsmng/src/
-rm -rf $HOME/.local/share/epicsmng/
+rm -rf "$HOME"/.config/epicsmng/src/
+rm -rf "$HOME"/.local/share/epicsmng/
 
 userHome=$(eval echo ~$(logname))
-rm -rf $userHome/.config/epicsmng/src/
-rm -rf $userHome/.local/share/epicsmng/
+rm -rf "$userHome"/.config/epicsmng/src/
+rm -rf "$userHome"/.local/share/epicsmng/
 
 echo "Done!"
