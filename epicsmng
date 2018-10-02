@@ -102,10 +102,9 @@ gensub_libs="genSub"
 
 # if home is not set, set it to ~ (this should be the most generic way)
 if [ -z ${HOME+x} ]; then HOME=~; fi
-basedir="$HOME/.config/epicsmng"
-src="$basedir/src"
-settingsdir="$basedir/settings"
-patchesdir="$basedir/patches"
+settingsdir="$HOME/.config/epicsmng/settings"
+src="$HOME/.local/share/epicsmng"
+patchesdir="$HOME/.config/epicsmng/patches"
 
 if ! install -d "$settingsdir"; then
     echo "WARNING: cannot create user configuration directory $settingsdir"
@@ -142,6 +141,7 @@ fi
 
 #run user-supplied config files
 for file in "$settingsdir"/*; do
+  if [[ -f "$file" ]]; then
   source "$file"
 done
 
