@@ -19,7 +19,7 @@ rm -f /etc/bash_completion.d/epicsmng-completion.bash
 rm -rf "$HOME"/.config/epicsmng/src/
 rm -rf "$HOME"/.local/share/epicsmng/
 
-userHome=$(eval echo ~$(logname))
+userHome=$(eval echo ~"$(logname)")
 rm -rf "$userHome"/.config/epicsmng/src/
 rm -rf "$userHome"/.local/share/epicsmng/
 
