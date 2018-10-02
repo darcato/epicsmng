@@ -142,7 +142,8 @@ fi
 #run user-supplied config files
 for file in "$settingsdir"/*; do
   if [[ -f "$file" ]]; then
-  source "$file"
+    source "$file"
+  fi
 done
 
 ##### Common utilities #####
