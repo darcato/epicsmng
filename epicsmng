@@ -100,8 +100,9 @@ gensub_libs="genSub"
 
 ########################################################################
 
-usr="$(whoami)"
-basedir="/home/$usr/.config/epicsmng"
+# if home is not set, set it to ~ (this should be the most generic way)
+if [ -z ${HOME+x} ]; then HOME=~; fi
+basedir="$HOME/.config/epicsmng"
 src="$basedir/src"
 settingsdir="$basedir/settings"
 patchesdir="$basedir/patches"
