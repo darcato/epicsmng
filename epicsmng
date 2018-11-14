@@ -22,6 +22,26 @@ done
 
 ##### Common utilities #####
 
+#acquire lock
+function lock() {
+    local prefix=$1
+    local fd='200'
+    local lock_file="$share/$prefix.lock"
+
+    # create lock file
+    eval "exec $fd>$lock_file"
+
+    # acquier the lock
+    flock -n "$fd" && return 0 || return 1
+}
+
+eexit() {
+    local error_str="$*"
+
+    echo "$error_str"
+    exit 1
+}
+
 #this creates the folder containing the source of a module
 #clones the repository
 #and checkout to the required version
@@ -490,10 +510,11 @@ function listmodules {
 
 top="$(pwd)"  #top default path is "."
 verbose="/dev/null"  #verbosity: default=non verbose
+programname="$(basename "$0")"
 
 usage() { 
     echo ""
-    echo "USAGE: $(basename "$0") command args"
+    echo "USAGE: $programname command args"
     echo "     command - one of the supported commands"
     echo "     args    - the command arguments"
     echo ""
@@ -591,7 +612,8 @@ fi
 #main command launcher
 case "$command" in
 makemodules)
-	makemodules
+	lock "$programname" || eexit "ERROR: Only one instance of $programname makemodules can run at one time."
+    makemodules 
 	;;
 cleanmodules)
     cleanmodules
