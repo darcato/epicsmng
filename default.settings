@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+
+######################################################
+#                                                    #
+#  Davide Marcato 2018                               #
+#  epicsmng: script to manage epics modules          #
+#                                                    #
+#  DO NOT MODIFY THIS FILE                           #
+#  Changes will be overwritten upon updating         #
+#  Add your own config files inside:                 #
+#  ~/.config/epicsmng/settings                       #
+#                                                    #
+######################################################
+
+
+#module_url=""          - the url of the git repository or of files to download
+#module_requires=""     - the modules that are required to compiled this one, to be set in configure/RELEASE
+#module_optionals=""    - the optional modules to set in configure/RELEASE when available
+#module_dbd=""          - the dbd files provided by the module, to be set in myApp/src/Makefile
+#module_libs=""         - the libs files provided by the module, to be set in myApp/src/Makefile
+
+base_url="https://git.launchpad.net/epics-base"
+base_requires=""
+base_optionals=""
+base_dbd="base.dbd"
+base_libs="\$(EPICS_BASE_IOC_LIBS)"
+
+asyn_url='https://github.com/epics-modules/asyn.git'
+asyn_requires="base"
+asyn_optionals="sncseq ipac"
+asyn_dbd="asyn.dbd drvAsynIPPort.dbd drvAsynSerialPort.dbd"
+asyn_libs="asyn"
+
+motor_url='https://github.com/epics-modules/motor'
+motor_requires="base asyn"
+motor_optionals="busy ipac sncseq"
+motor_dbd="motorSupport.dbd"
+motor_libs="motor"
+
+ipac_url="https://github.com/epics-modules/ipac.git"
+ipac_requires="base"
+ipac_optionals=""
+ipac_dbd="ipac.dbd"
+ipac_libs="ipac"
+
+streamdevice_url="https://github.com/paulscherrerinstitute/StreamDevice.git"
+streamdevice_requires="base asyn"
+streamdevice_optionals="calc"
+streamdevice_dbd="stream.dbd"
+streamdevice_libs="stream"
+
+calc_url='https://github.com/epics-modules/calc.git'
+calc_requires="base"
+calc_optionals="sscan sncseq"
+calc_dbd="calc.dbd"
+calc_libs="calc"
+
+beckmotor_url="https://github.com/darcato/beckMotor.git"
+beckmotor_requires="base asyn motor"
+beckmotor_optionals=""
+beckmotor_dbd="beckMotor.dbd"
+beckmotor_libs="beckMotor"
+
+modbus_url="https://github.com/epics-modules/modbus.git"
+modbus_requires="base asyn"
+modbus_optionals=""
+modbus_dbd="modbusSupport.dbd"
+modbus_libs="modbus"
+
+autosave_url="https://github.com/epics-modules/autosave.git"
+autosave_requires="base"
+autosave_optionals=""
+autosave_dbd="asSupport.dbd"
+autosave_libs="autosave"
+
+busy_url="https://github.com/epics-modules/busy.git"
+busy_requires="base autosave asyn"
+busy_optionals=""
+busy_dbd="busySupport.dbd"
+busy_libs="busy"
+
+sscan_url="https://github.com/epics-modules/sscan.git"
+sscan_requires="base"
+sscan_optionals="sncseq"
+sscan_dbd="sscanSupport.dbd"
+sscan_libs="sscan"
+
+sncseq_url="http://www-csr.bessy.de/control/SoftDist/sequencer/releases/"
+sncseq_requires="base"
+sncseq_optionals="sncseq"
+sncseq_dbd=""
+sncseq_libs="seq"
+
+gensub_url="http://www.observatorysciences.co.uk/downloads/"
+gensub_requires="base"
+gensub_optionals=""
+gensub_dbd="genSubRecord.dbd"
+gensub_libs="genSub"

@@ -1,26 +1,52 @@
 #!/usr/bin/env bash
 
-if [ "$(id -u)" -ne 0 ]; then
-    echo "Please run as superuser"
-    exit 1
-fi
+#Installing on local folder on HOME
+dest="$HOME/.local/bin"
+share="$HOME/.local/share/epicsmng"
+configdir="$HOME/.config/epicsmng"
+completion_dir="$HOME/.bash_completion.d"
+settingsdir="$configdir/settings"
+patchesdir="$configdir/patches"
 
-#using "local" folder as this will not be managed by a packet manager
-dest="/usr/local/bin/"
-
-#create source folder if not present
+#Install the executable
 echo "Installing epicsmng..."
-if ! install -m 755 ./epicsmng $dest; then
+if ! install -m 755 ./epicsmng "$dest"; then
     echo "Installation failed"
     exit 1
 fi
 
-install -m 644 ./epicsmng-completion.bash /etc/bash_completion.d/
-rm -rf "$HOME"/.config/epicsmng/src/
-rm -rf "$HOME"/.local/share/epicsmng/
+#Update PATH if necessary
+if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
+    echo "export PATH=\$PATH:$dest # Added by epicsmng" >> "$HOME"/.bashrc
+    echo "PATH updated: open a new shell to start using epicsmng"
+fi
 
-userHome=$(eval echo ~"$(logname)")
-rm -rf "$userHome"/.config/epicsmng/src/
-rm -rf "$userHome"/.local/share/epicsmng/
+#Install the bash completion
+install -d "$completion_dir"
+if ! grep -qs "Installed by epicsmng" "$HOME/.bash_completion"; then
+    [ -f "$HOME/.bash_completion" ] && mv "$HOME/.bash_completion"  "$completion_dir/original.bash"
+    cp ./completion_include.bash "$HOME/.bash_completion"
+fi
+install -m 644 ./epicsmng-completion.bash "$HOME/.bash_completion.d/"
+
+#Remove existing sources to avoid conflicts
+rm -rf "$share"
+
+#Install default directories
+if ! install -d "$settingsdir"; then
+    echo "WARNING: cannot create user configuration directory $settingsdir"
+fi
+
+if ! install -d "$patchesdir"; then
+    echo "WARNING: cannot create patches directory $patchesdir"
+fi
+
+#Install default config overwriting existing one
+cp ./default.settings "$configdir"
+
+#if configdir empty, populate it with example user config
+if [ -z "$(ls -A "$settingsdir")" ]; then
+    cp ./user.settings "$settingsdir"
+fi
 
 echo "Done!"
