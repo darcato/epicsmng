@@ -43,11 +43,11 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
 
 4) ```cd epicsmng```
 
-5) ```sudo sh install.sh```
+5) ```sh install.sh```
 
 6) Enjoy!
 
-To remove it: ```sudo sh uninstall.sh```
+To remove it: ```sh uninstall.sh```
 
 ## Commands
 
