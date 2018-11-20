@@ -10,7 +10,8 @@ patchesdir="$configdir/patches"
 
 #Install the executable
 echo "Installing epicsmng..."
-if ! install -D -m 755 ./epicsmng "$dest"; then
+install -d "$dest"
+if ! install -m 755 ./epicsmng "$dest"; then
     echo "Installation failed"
     exit 1
 fi
