@@ -10,7 +10,7 @@ patchesdir="$configdir/patches"
 
 #Install the executable
 echo "Installing epicsmng..."
-if ! install -m 755 ./epicsmng "$dest"; then
+if ! install -D -m 755 ./epicsmng "$dest"; then
     echo "Installation failed"
     exit 1
 fi
@@ -27,7 +27,7 @@ if ! grep -qs "Installed by epicsmng" "$HOME/.bash_completion"; then
     [ -f "$HOME/.bash_completion" ] && mv "$HOME/.bash_completion"  "$completion_dir/original.bash"
     cp ./completion_include.bash "$HOME/.bash_completion"
 fi
-install -m 644 ./epicsmng-completion.bash "$HOME/.bash_completion.d/"
+install -m 644 ./epicsmng-completion.bash "$completion_dir"
 
 #Remove existing sources to avoid conflicts
 rm -rf "$share"
