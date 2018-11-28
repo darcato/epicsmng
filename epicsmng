@@ -6,6 +6,7 @@ src="$share/src"
 configdir="$HOME/.config/epicsmng"
 settingsdir="$configdir/settings"
 patchesdir="$configdir/patches"
+version="_VERSION_"
 
 if ! install -d "$src"; then
     echo "ERROR: cannot create source directory $src"
@@ -523,6 +524,7 @@ usage() {
     echo " - cleanmodules [-C <path>] configuration"
     echo " - configureioc [-C <path>] configuration"
     echo " - listmodules"
+    echo " - version"
     echo ""
     echo "Arguments:"
     echo " - configuration - a file describing the epics modules to be installed"
@@ -539,6 +541,11 @@ if (( $# < 1 )); then
 fi
 command=$1
 shift 1  #shift so that now optional args are first (required by optargs)
+
+if [ "$command" == "version" ]; then
+    echo "$version"
+    exit 0
+fi
 
 # parse optional argument [-C <top>]
 while getopts ":C:j:v" o; do
