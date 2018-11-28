@@ -8,3 +8,4 @@ shellcheck:
     - shellcheck -e SC2034,SC1090 ./install.sh
     - shellcheck -e SC2034,SC1090 ./uninstall.sh
     - shellcheck -e SC2034,SC1090 ./epicsmng-completion.bash
+    - shellcheck -e SC2034,SC1090 ./completion_include.bash
