@@ -514,6 +514,7 @@ verbose="/dev/null"  #verbosity: default=non verbose
 programname="$(basename "$0")"
 
 usage() { 
+    echo "$programname $version"
     echo ""
     echo "USAGE: $programname command args"
     echo "     command - one of the supported commands"

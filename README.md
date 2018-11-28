@@ -67,6 +67,10 @@ To remove it: ```sh uninstall.sh```
 
    This command lists the names of the available modules, that is the ones which will be accepted in the configuration file.
 
++ ```epicsmng version```
+
+   Print epicsmng version.
+
 ## How to use
 
 1. Create a configuration file following the example.conf file and place it in the TOP directory of the corresponding ioc. The available modules can be listed via ```epicsmng listmodules```. The available versions are the git tag available on the git repositories of the modules, or exactly the version of the file to download for modules not available on git.
