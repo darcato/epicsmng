@@ -2,12 +2,12 @@
 
 #Uninstalling from local folder on HOME
 dest="$HOME/.local/bin"
-share="$HOME"/.local/share/epicsmng/
+share="$HOME/.local/share/epicsmng/"
 completion_dir="$HOME/.bash_completion.d/"
 
 #Remove executable
 echo "Removing epicsmng..."
-if ! rm -f "$dest"/epicsmng; then
+if ! rm -f "$dest/epicsmng"; then
     echo "Failed"
     exit 1
 fi

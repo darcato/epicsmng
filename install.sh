@@ -10,6 +10,9 @@ completion_dir="$HOME/.bash_completion.d"
 settingsdir="$configdir/settings"
 patchesdir="$configdir/patches"
 
+# cd to repository folder
+cd "$(dirname "$0")"
+
 #Install the executable
 echo "Installing epicsmng..."
 install -d "$dest"
