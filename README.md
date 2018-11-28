@@ -43,10 +43,9 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
 
 3) Install:
 
-   ```
-   cd epicsmng
-   sh install.sh
-   ```
+   ```cd epicsmng```
+   
+   ```sh install.sh```
 
 4) Enjoy!
 
