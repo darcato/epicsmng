@@ -11,7 +11,7 @@ settingsdir="$configdir/settings"
 patchesdir="$configdir/patches"
 
 # cd to repository folder
-cd "$(dirname "$0")"
+cd "$(dirname "$0")" || exit 1
 
 #Install the executable
 echo "Installing epicsmng..."
