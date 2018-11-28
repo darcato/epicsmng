@@ -1,0 +1,15 @@
+FROM ubuntu:latest
+
+ENV PATH="${HOME:-/root}/.local/bin:${PATH}"
+
+RUN apt-get update \ 
+    && apt-get -y install \
+        git \
+        build-essential \
+        libreadline-dev \
+        re2c
+
+COPY . /epicsmng
+
+RUN sh /epicsmng/install.sh \
+    && rm -rf /epicsmng

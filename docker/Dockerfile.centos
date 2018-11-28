@@ -1,0 +1,14 @@
+FROM centos:latest
+
+ENV PATH="${HOME:-/root}/.local/bin:${PATH}"
+
+RUN yum install -y \
+        git \
+        readline-devel \
+        gcc \
+        gcc-c++
+
+COPY . /epicsmng
+
+RUN sh /epicsmng/install.sh \
+    && rm -rf /epicsmng
