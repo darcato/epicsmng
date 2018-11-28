@@ -11,10 +11,17 @@ patchesdir="$configdir/patches"
 #Install the executable
 echo "Installing epicsmng..."
 install -d "$dest"
-if ! install -m 755 ./epicsmng "$dest"; then
+version=$(git describe --tags)
+if ! sed -e "s/_VERSION_/${version}/" ./epicsmng > epicsmng_tmp; then
     echo "Installation failed"
     exit 1
 fi
+
+if ! install -m 755 ./epicsmng_tmp "$dest/epicsmng"; then
+    echo "Installation failed"
+    exit 1
+fi
+rm epicsmng_tmp
 
 #Update PATH if necessary
 if ! echo "$PATH" | grep -q "$HOME/.local/bin"; then
