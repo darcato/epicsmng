@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+release="v2.1.0-release"
+
 #Installing on local folder on HOME
 dest="$HOME/.local/bin"
 share="$HOME/.local/share/epicsmng"
@@ -11,7 +13,7 @@ patchesdir="$configdir/patches"
 #Install the executable
 echo "Installing epicsmng..."
 install -d "$dest"
-version=$(git describe --tags)
+version=$(git describe --tags 2>/dev/null || echo "$release")
 if ! sed -e "s/_VERSION_/${version}/" ./epicsmng > epicsmng_tmp; then
     echo "Installation failed"
     exit 1
