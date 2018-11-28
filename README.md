@@ -37,15 +37,18 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
    
    CentOS/RHEL: ```sudo yum install git readline-devel make gcc gcc-c++```
 
-2) Download repository archive or git clone it
+2) Clone repository:
 
-3) Unpack it if required
+   ```git clone https://github.com/darcato/epicsmng.git```
 
-4) ```cd epicsmng```
+3) Install:
 
-5) ```sh install.sh```
+   ```
+   cd epicsmng
+   sh install.sh
+   ```
 
-6) Enjoy!
+4) Enjoy!
 
 To remove it: ```sh uninstall.sh```
 
