@@ -502,9 +502,18 @@ function configureioc {
 ##### LISTMODULES #####
 
 function listmodules {
+    local tobelisted output
     echo "Available modules:"
     echo "------------------"
-    set -o posix; set | grep "_url" | grep -o -e "^[^_]*"
+    output=""
+    tobelisted="$(set -o posix; set | grep "_url")"
+    for item in $tobelisted; do
+        url=$(echo "$item" | grep -o -e "[^=]*$")
+        listing="$(echo "$item" | grep -o -e "^[^_]*")"
+        tags="$(git ls-remote -t "$url" | awk '{print $2}' | cut -d '/' -f 3 | cut -d '^' -f 1 | uniq | tail -n5 | awk -vORS=" " '{ print $1 }')"
+        output+="$listing | $tags\n"
+    done
+    echo -e "$output" | column -t
 }
 
 ##### EPICSMNG #####
