@@ -1,11 +1,13 @@
 image: koalaman/shellcheck-alpine:stable
    
 shellcheck:
+  variables:
+  #ignore warnings on unused variables and non costant source (imported files)
+    SHELLCHECK_OPTS: "-e SC2034,SC1090"
   script: 
   #run shellcheck on all scripts
-  #ignore warnings on unused variables and non costant source (imported files)
-    - shellcheck -e SC2034,SC1090 ./epicsmng
-    - shellcheck -e SC2034,SC1090 ./install.sh
-    - shellcheck -e SC2034,SC1090 ./uninstall.sh
-    - shellcheck -e SC2034,SC1090 ./epicsmng-completion.bash
-    - shellcheck -e SC2034,SC1090 ./completion_include.bash
+    - shellcheck ./epicsmng
+    - shellcheck ./install.sh
+    - shellcheck ./uninstall.sh
+    - shellcheck ./epicsmng-completion.bash
+    - shellcheck ./completion_include.bash
