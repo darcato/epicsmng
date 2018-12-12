@@ -13,6 +13,8 @@ patchesdir="$configdir/patches"
 # cd to repository folder
 cd "$(dirname "$0")" || exit 1
 
+utils="./utils/"
+
 #Install the executable
 echo "Installing epicsmng..."
 install -d "$dest"
@@ -38,9 +40,9 @@ fi
 install -d "$completion_dir"
 if ! grep -qs "Installed by epicsmng" "$HOME/.bash_completion"; then
     [ -f "$HOME/.bash_completion" ] && mv "$HOME/.bash_completion"  "$completion_dir/original.bash"
-    cp ./completion_include.bash "$HOME/.bash_completion"
+    cp "$utils/completion_include.bash" "$HOME/.bash_completion"
 fi
-install -m 644 ./epicsmng-completion.bash "$completion_dir"
+install -m 644 "$utils/epicsmng-completion.bash" "$completion_dir"
 
 #Remove existing sources to avoid conflicts
 rm -rf "$share"
@@ -55,11 +57,11 @@ if ! install -d "$patchesdir"; then
 fi
 
 #Install default config overwriting existing one
-cp ./default.settings "$configdir"
+cp "$utils/default.settings" "$configdir"
 
 #if configdir empty, populate it with example user config
 if [ -z "$(ls -A "$settingsdir")" ]; then
-    cp ./user.settings "$settingsdir"
+    cp "$utils/user.settings" "$settingsdir"
 fi
 
 echo "Done!"
