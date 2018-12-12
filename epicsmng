@@ -75,7 +75,7 @@ function prepare_git_src {
     if ! git -c advice.detachedHead=false checkout "$version"; then
         echo "ERROR: Git version tag $version not found."
         echo "Example of available versions are:"
-        git tag --sort=-version:refname | head -n 15
+        git for-each-ref --sort=-taggerdate --format '%(refname)' refs/tags | cut -d '/' -f 3 | head -n 15
         return 1
     fi
 
