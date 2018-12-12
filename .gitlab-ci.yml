@@ -9,5 +9,5 @@ shellcheck:
     - shellcheck ./epicsmng
     - shellcheck ./install.sh
     - shellcheck ./uninstall.sh
-    - shellcheck ./epicsmng-completion.bash
-    - shellcheck ./completion_include.bash
+    - shellcheck ./utils/epicsmng-completion.bash
+    - shellcheck ./utils/completion_include.bash
