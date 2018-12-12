@@ -502,18 +502,23 @@ function configureioc {
 ##### LISTMODULES #####
 
 function listmodules {
-    local tobelisted output
-    echo "Available modules:"
-    echo "------------------"
-    output=""
+    local tobelisted output tags
+    output="------~|~------------\n"
+    output+="MODULE~|~TAG EXAMPLES\n"
+    output+="------~|~------------\n"
     tobelisted="$(set -o posix; set | grep "_url")"
     for item in $tobelisted; do
         url=$(echo "$item" | grep -o -e "[^=]*$")
         listing="$(echo "$item" | grep -o -e "^[^_]*")"
-        tags="$(git ls-remote -t "$url" | awk '{print $2}' | cut -d '/' -f 3 | cut -d '^' -f 1 | uniq | tail -n5 | awk -vORS=" " '{ print $1 }')"
-        output+="$listing | $tags\n"
+        tags="$(git ls-remote -t "$url" 2>/dev/null | awk '{print $2}' | cut -d '/' -f 3 \
+            | cut -d '^' -f 1 | uniq | grep -oe "^\([A-Za-z]\)\?\([_\.-]\)\?\([0-9]\)\+\([_\.-]\)\+.*" \
+            | sort -r --version-sort | head -n 5 | awk -vORS=" " '{ print $1 }' | awk '$1=$1' FS=" " OFS="~")"
+        if [ ! "$tags" ]; then
+            tags="-"
+        fi
+        output+="$listing~|~$tags\n"
     done
-    echo -e "$output" | column -t
+    echo -e "$output" | column -t -s "~"
 }
 
 ##### EPICSMNG #####
