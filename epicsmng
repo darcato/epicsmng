@@ -80,7 +80,7 @@ function prepare_git_src {
     fi
 
     #apply user-supplied patches for this specific version
-    if [ -d "$patchesdir/$module/$version" ] && [ ! -z "$(ls -A "$patchesdir/$module/$version")" ]; then
+    if [ -d "$patchesdir/$module/$version" ] && [ -n "$(ls -A "$patchesdir/$module/$version")" ]; then
         for file in "$patchesdir/$module/$version"/*; do
             if ! git apply --check "$file"; then
                 echo "The patch $file is incompatible. Please fix it."
