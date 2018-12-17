@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# EPICSMNG
+# A tool to easily download and install epics modules
+# Davide Marcato - Damiano Bortolato 2018
+
 # default locations
 share="$HOME/.local/share/epicsmng"
 src="$share/src"
