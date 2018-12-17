@@ -25,7 +25,7 @@ by running
 epicsmng makemodules myconf.conf
 ```
 
-all the specified modules will be downloaded, built and installed (in order). If a module requires another one to compile, they are automatically linked! Just rember to put the required module higher in the list.
+all the specified modules will be downloaded, built and installed (in order). If a module requires another one to compile, they are automatically linked! Just remember to put the required module higher in the list.
 
 The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myconf/``` folder, with respect to the path where the script has been executed.
 
@@ -63,7 +63,7 @@ To remove it: ```sh uninstall.sh```
 
 + ```epicsmng configureioc [-C <path>]  <conf_file>```
 
-   This command configures an ioc to use the specified configuration. The ioc is specified by its TOP folder path, via the ```-C``` option or by executing the script in the TOP folder. Then the file ```configure/RELEASE``` is set with the paths to the compiled modules, relative to the $(TOP) macro. Furthermore the file *App/src/Makefile (where * stands for each application installed in the ioc) is modified to add the corresponding dbd and libs.
+   This command configures an ioc to use the specified configuration. The ioc is specified by its TOP folder path, via the ```-C``` option or by executing the script in the TOP folder. Then the file ```configure/RELEASE``` is set with the paths to the compiled modules, relative to the $(TOP) macro. Furthermore, the file *App/src/Makefile (where * stands for each application installed in the ioc) is modified to add the corresponding dbd and libs.
 
 + ```epicsmng listmodules```
 
@@ -75,7 +75,12 @@ To remove it: ```sh uninstall.sh```
 
 ## How to use
 
-1. Create a configuration file following the example.conf file and place it in the TOP directory of the corresponding ioc. The available modules can be listed via ```epicsmng listmodules```. The available versions are the git tag available on the git repositories of the modules, or exactly the version of the file to download for modules not available on git.
+   1. Create a configuration file following the ``example.conf`` file and place
+      it in the TOP directory of the corresponding ioc. The available modules and
+      some tag examples can be listed via ```epicsmng listmodules```. The
+      available versions are the git tag available on the git repositories of
+      the modules, or exactly the version of the file to download for modules
+      not available on git.
 
 2. Execute ```epicsmng makemodules [-C <path>] [-j<n>] [-v]  <conf_file>``` in the ioc TOP folder.
 
@@ -93,6 +98,7 @@ More guides are available on the [epicsmng wiki](https://github.com/darcato/epic
 * beckmotor
 * busy
 * calc
+* csm
 * gensub
 * ipac
 * modbus
@@ -128,10 +134,10 @@ You can simply drop some git patch files inside ```~/.config/epicsmng/patches/<m
 
 ### Creating your own patches
 
-To create a new patch you can follow standard git procedures. For example you could go to the source folder (```~/.local/share/epicsmng/src/<module>/```), modify the files that you need and then run 
+To create a new patch you can follow standard git procedures. For example, you could go to the source folder (```~/.local/share/epicsmng/src/<module>/```), modify the files that you need and then run 
 
 ```
 git diff <modified_files> > mypatch.patch
 ```
 
-replacing ```<modified_files>``` whith the list of files you modified for this patch.
+replacing ```<modified_files>``` with the list of files you modified for this patch.
