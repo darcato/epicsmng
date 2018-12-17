@@ -87,7 +87,7 @@ sscan_libs="sscan"
 
 sncseq_url="http://www-csr.bessy.de/control/SoftDist/sequencer/releases/"
 sncseq_requires="base"
-sncseq_optionals="sncseq"
+sncseq_optionals=""
 sncseq_dbd=""
 sncseq_libs="seq"
 
@@ -96,3 +96,9 @@ gensub_requires="base"
 gensub_optionals=""
 gensub_dbd="genSubRecord.dbd"
 gensub_libs="genSub"
+
+csm_url="https://www-csr.bessy.de/control/SoftDist/csm/_downloads/"
+csm_requires="base"
+csm_optionals=""
+csm_dbd="cvtRecord.dbd menuCvtInitState.dbd menuCvtMethod.dbd"
+csm_libs="cvtRecord csmbase"

@@ -153,6 +153,10 @@ function set_site {
     file="configure/CONFIG_SITE"
 
     if [ ! -r "$file" ]; then
+        file="configure/CONFIG_APP"
+    fi
+
+    if [ ! -r "$file" ]; then
         file="configure/CONFIG"
     fi
 
@@ -344,6 +348,15 @@ function compile_sncseq {
     module="sncseq"
     version="$1"
     fname="seq-$version.tar.gz"
+    
+    compile_file "$module" "$version" "$fname"
+};
+
+function compile_csm {
+    local module  version fname
+    module="csm"
+    version="$1"
+    fname="$module-$version.tar.gz"
     
     compile_file "$module" "$version" "$fname"
 };
