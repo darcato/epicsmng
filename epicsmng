@@ -519,23 +519,59 @@ function configureioc {
 ##### LISTMODULES #####
 
 function listmodules {
-    local tobelisted output tags
-    output="------~|~------------\n"
-    output+="MODULE~|~TAG EXAMPLES\n"
-    output+="------~|~------------\n"
-    tobelisted="$(set -o posix; set | grep "_url")"
-    for item in $tobelisted; do
-        url=$(echo "$item" | grep -o -e "[^=]*$")
-        listing="$(echo "$item" | grep -o -e "^[^_]*")"
+    local tobelisted output tags count total width full empty fn fn_mod en
+    output[0]="------~|~------------\n"
+    output[1]="MODULE~|~TAG EXAMPLES\n"
+    output[2]="------~|~------------\n"
+    tobelisted="$(set -o posix; set | grep "_url")" # all the modules
+    tobelisted=($tobelisted)
+    
+    count=0 # num of modules already inspected
+    width="$(tput cols)" # shell width
+    total="${#tobelisted[@]}" # total num of modules
+    fn="$(( (($width - 27) * $count) / $total ))"; # num of occupied blocks in bar
+    fn_mod="$(( ((($width - 27) * $count) % $total)!=0 ))" # 1 if there is module
+    en="$(( (($width - 27) * ($total-$count)) / $total + $fn_mod ))" # num of free blocks in bar
+    full="$(printf "%${fn}s" | tr " " "=")" # string for full blocks
+    empty="$(printf "%${en}s")" # string for free blocks
+    
+    # For each module - first print only name
+    for ((i=0;i<$total;i++)); do
+        url=$(echo "${tobelisted[$i]}" | grep -o -e "[^=]*$")
+        listing="$(echo "${tobelisted[$i]}" | grep -o -e "^[^_]*")"
+        output[$(($i+3))]="$listing~|~\n"
+    done
+    # Print all modules names
+    echo -e "$(printf '%s' "${output[@]}")" | column -t -s "~"
+    # Print a status bar
+    printf "Downloading tags: %3d.%1d%% [%s%s]\n" $(( $count * 100 / $total )) $(( ($count * 1000 / $total) % 10 )) "$full" "$empty"
+
+    # For each module - now print also tags one by one
+    for ((i=0;i<$total;i++)); do
+        url=$(echo "${tobelisted[$i]}" | grep -o -e "[^=]*$")
+        listing="$(echo "${tobelisted[$i]}" | grep -o -e "^[^_]*")"
         tags="$(git ls-remote -t "$url" 2>/dev/null | awk '{print $2}' | cut -d '/' -f 3 \
             | cut -d '^' -f 1 | uniq | grep -oe "^\([A-Za-z]\)\?\([_\.-]\)\?\([0-9]\)\+\([_\.-]\)\+.*" \
             | sort -r --version-sort | head -n 5 | awk -vORS=" " '{ print $1 }' | awk '$1=$1' FS=" " OFS="~")"
         if [ ! "$tags" ]; then
             tags="-"
         fi
-        output+="$listing~|~$tags\n"
+        output[$(($i+3))]="$listing~|~$tags\n"
+        
+        # Reprint all output (with added tags)
+        tput cuu $(( $total + 4 )) # go up in terminal
+        echo -e "$(printf '%s' "${output[@]}")" | column -t -s "~"
+        
+        # Updated status bar
+        count=$(( $count +1 ))
+        width="$(tput cols)" # shell width
+        fn="$(( (($width - 27) * $count) / $total ))"; # num of occupied blocks in bar
+        fn_mod="$(( ((($width - 27) * $count) % $total)!=0 ))" # 1 if there is module
+        en="$(( (($width - 27) * ($total-$count)) / $total + $fn_mod ))" # num of free blocks in bar
+        full="$(printf "%${fn}s" | tr " " "=")" # string for full blocks
+        empty="$(printf "%${en}s")" # string for free blocks
+        printf "Downloading tags: %3d.%1d%% [%s%s]\n" $(( $count * 100 / $total )) $(( ($count * 1000 / $total) % 10 )) "$full" "$empty"
     done
-    echo -e "$output" | column -t -s "~"
 }
 
 ##### EPICSMNG #####
