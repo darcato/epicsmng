@@ -357,8 +357,17 @@ function compile_sncseq {
 };
 
 function compile_csm {
-    local module  version fname
+    local module version fname
     module="csm"
+    version="$1"
+    fname="$module-$version.tar.gz"
+    
+    compile_file "$module" "$version" "$fname"
+};
+
+function compile_s7nodave {
+    local module version fname
+    module="s7nodave"
     version="$1"
     fname="$module-$version.tar.gz"
     

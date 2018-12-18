@@ -103,6 +103,7 @@ More guides are available on the [epicsmng wiki](https://github.com/darcato/epic
 * ipac
 * modbus
 * motor
+* s7nodave
 * sncseq
 * sscan
 * streamdevice  -> NOTE: only versions 2.8+ are supported
