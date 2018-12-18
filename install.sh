@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-release="v2.2.0-release"
+release="v2.3.0-release"
 
 #Installing on local folder on HOME
 dest="$HOME/.local/bin"
