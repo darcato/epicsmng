@@ -567,7 +567,7 @@ function listmodules {
         output[$((i+3))]="$listing~|~$tags\n"
         
         # Reprint all output (with added tags)
-        tput cuu $(( $total + 4 )) # go up in terminal
+        tput cuu $(( total + 4 )) # go up in terminal
         echo -e "$(printf '%s' "${output[@]}")" | column -t -s "~"
         
         # Updated status bar
