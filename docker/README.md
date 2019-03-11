@@ -7,7 +7,7 @@ These images are developed to be used as base images for other projects.
 One could use this docker image to run CI pipelines where an epics IOC has to be built:
 
 ```
-image: epicsmng
+image: darcato/epicsmng
 
 build:
   script: 
