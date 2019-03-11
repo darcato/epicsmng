@@ -94,7 +94,7 @@ More guides are available on the [epicsmng wiki](https://github.com/darcato/epic
 
 One could use this docker image to run CI pipelines where an epics IOC has to be built:
 
-```
+``` Dockerfile
 image: darcato/epicsmng
 
 build:
