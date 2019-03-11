@@ -12,4 +12,6 @@ RUN apt-get update \
 COPY . /epicsmng
 
 RUN sh /epicsmng/install.sh \
-    && rm -rf /epicsmng
+    && rm -rf /epicsmng \
+    && echo "" >> ${HOME:-/root}/.config/epicsmng/settings/user.settings \
+    && echo "base_url=\"https://github.com/epics-base/epics-base\"" >> ${HOME:-/root}/.config/epicsmng/settings/user.settings
