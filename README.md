@@ -82,13 +82,27 @@ To remove it: ```sh uninstall.sh```
       the modules, or exactly the version of the file to download for modules
       not available on git.
 
-2. Execute ```epicsmng makemodules [-C <path>] [-j<n>] [-v]  <conf_file>``` in the ioc TOP folder.
+   2. Execute ```epicsmng makemodules [-C <path>] [-j<n>] [-v]  <conf_file>``` in the ioc TOP folder.
 
-3. Execute ```epicsmng configureioc [-C <path>]  <conf_file>``` in the ioc TOP folder.
+   3. Execute ```epicsmng configureioc [-C <path>]  <conf_file>``` in the ioc TOP folder.
 
-4. Run ```make``` to compile the ioc as usual.
+   4. Run ```make``` to compile the ioc as usual.
 
 More guides are available on the [epicsmng wiki](https://github.com/darcato/epicsmng/wiki).
+
+## Docker images usage
+
+One could use this docker image to run CI pipelines where an epics IOC has to be built:
+
+```
+image: darcato/epicsmng
+
+build:
+  script: 
+    - epicsmng makemodules -v your_modules.conf
+    - epicsmng configureioc your_modules.conf #optional
+    - make
+```
 
 ## Available modules
 
