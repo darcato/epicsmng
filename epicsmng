@@ -283,7 +283,7 @@ function compile_file {
     elif [ -f "$fname" ]; then
         echo "file exists"
         mkdir "$version"
-        tar zxvf "$fname" --strip-components=1 -C "$version"
+        tar -xf "$fname" --strip-components=1 -C "$version"
         cd "$version" || return 1
     else
         echo "Downloading..."
