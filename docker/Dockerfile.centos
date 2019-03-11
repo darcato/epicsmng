@@ -1,7 +1,9 @@
 FROM centos:latest
 
+# Add the epicsmng executable location to PATH
 ENV PATH="${HOME:-/root}/.local/bin:${PATH}"
 
+# Install required packets to build code
 RUN yum install -y \
         git \
         readline-devel \
@@ -9,8 +11,10 @@ RUN yum install -y \
         gcc-c++ \
         make
 
+# Copy epicsmng code from repository
 COPY . /epicsmng
 
+# Install, clean source files and set the github mirror of the base to be used (faster)
 RUN sh /epicsmng/install.sh \
     && rm -rf /epicsmng \
     && echo "" >> ${HOME:-/root}/.config/epicsmng/settings/user.settings \

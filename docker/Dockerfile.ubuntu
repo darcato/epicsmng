@@ -1,7 +1,9 @@
 FROM ubuntu:latest
 
+# Add the epicsmng executable location to PATH
 ENV PATH="${HOME:-/root}/.local/bin:${PATH}"
 
+# Install required packets to build code
 RUN apt-get update \ 
     && apt-get -y install \
         git \
@@ -9,8 +11,10 @@ RUN apt-get update \
         libreadline-dev \
         re2c
 
+# Copy epicsmng code from repository
 COPY . /epicsmng
 
+# Install, clean source files and set the github mirror of the base to be used (faster)
 RUN sh /epicsmng/install.sh \
     && rm -rf /epicsmng \
     && echo "" >> ${HOME:-/root}/.config/epicsmng/settings/user.settings \
