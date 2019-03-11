@@ -1,6 +1,7 @@
 FROM ubuntu:latest
 
 # Add the epicsmng executable location to PATH
+ENV HOME="${HOME:-/root}"
 ENV PATH="${HOME:-/root}/.local/bin:${PATH}"
 
 # Install required packets to build code
@@ -17,5 +18,5 @@ COPY . /epicsmng
 # Install, clean source files and set the github mirror of the base to be used (faster)
 RUN sh /epicsmng/install.sh \
     && rm -rf /epicsmng \
-    && echo "" >> ${HOME:-/root}/.config/epicsmng/settings/user.settings \
-    && echo "base_url=\"https://github.com/epics-base/epics-base\"" >> ${HOME:-/root}/.config/epicsmng/settings/user.settings
+    && echo "" >> $HOME/.config/epicsmng/settings/user.settings \
+    && echo "base_url=\"https://github.com/epics-base/epics-base\"" >> $HOME/.config/epicsmng/settings/user.settings
