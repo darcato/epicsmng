@@ -10,6 +10,7 @@ RUN yum install -y \
         readline-devel \
         gcc \
         gcc-c++ \
+        wget \
         make
 
 # Copy epicsmng code from repository
