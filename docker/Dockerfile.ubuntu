@@ -11,6 +11,7 @@ RUN apt-get update \
         build-essential \
         libreadline-dev \
         wget \
+        libc-dev-bin \
         re2c
 
 # Copy epicsmng code from repository
