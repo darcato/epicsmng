@@ -11,6 +11,7 @@ RUN yum install -y \
         gcc \
         gcc-c++ \
         wget \
+        glibc-common \
         make
 
 # Copy epicsmng code from repository
