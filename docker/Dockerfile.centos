@@ -5,13 +5,13 @@ ENV HOME="${HOME:-/root}"
 ENV PATH="$HOME/.local/bin:${PATH}"
 
 # Install required packets to build code
-RUN yum install -y \
+RUN yum --enablerepo=PowerTools install -y \
         git \
         readline-devel \
         gcc \
         gcc-c++ \
         wget \
-        glibc-common \
+        rpcgen \
         make
 
 # Copy epicsmng code from repository
