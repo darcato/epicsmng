@@ -493,6 +493,12 @@ function set_dbd_libs {
                 fi
             done
         done
+
+        # If defined locally, then do not comment
+        if [[ -n "$(find "$top/$d" -name "$set")" ]]; then
+            found=true
+        fi
+
         if [ "$found" = false  ]; then
             echo " - Commenting: $set"
             sed -i "s/.*$line/#&/" "$file"
