@@ -111,12 +111,14 @@ build:
 * base
 * beckmotor
 * busy
+* cagateway
 * calc
 * csm
 * gensub
 * ipac
 * modbus
 * motor
+* pcas
 * s7nodave
 * sncseq
 * sscan
