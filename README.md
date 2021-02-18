@@ -9,14 +9,14 @@ _epicsmng_ will read a configuration file and install all the listed modules wit
 For example, given the following configuration ```myconf.conf```:
 
 ```
-base = R3.15.5
-asyn = R4-33
-modbus = R2-10-1
-calc = R3-7
-streamdevice = 2.8.3
-motor = R6-10
-beckmotor = v2.1.2
-autosave = R5-9
+base = R7.0.4.1
+asyn = R4-41
+modbus = R3-2
+calc = R3-7-4
+streamdevice = 2.8.18
+motor = R7-2-2
+beckmotor = v2.2.1
+autosave = R5-10-2
 ```
 
 by running 
