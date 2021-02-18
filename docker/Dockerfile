@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.04
 
 # Add the epicsmng executable location to PATH
 ENV HOME="${HOME:-/root}"
