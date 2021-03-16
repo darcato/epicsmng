@@ -22,6 +22,3 @@ RUN sh /epicsmng/install.sh \
     && rm -rf /epicsmng \
     && echo "" >> $HOME/.config/epicsmng/settings/user.settings \
     && echo "base_url=\"https://github.com/epics-base/epics-base\"" >> $HOME/.config/epicsmng/settings/user.settings
-
-WORKDIR /data
-ENTRYPOINT [ "epicsmng" ]
