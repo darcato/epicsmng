@@ -423,21 +423,22 @@ function makemodules {
     done
     echo ""
     
-    #remove unused compiled modules
-    for dir in "$target"/*/ ; do
-        found=false
-        for i in "${!modules[@]}"; do  
-            if [ "${modules[$i]}-${versions[$i]}" = "$(basename "$dir")" ]; then
-                found=true
-                break
+    #remove unused compiled modules if requested
+    if [ "$removeubin" -eq "1" ]; then
+        for dir in "$target"/*/ ; do
+            found=false
+            for i in "${!modules[@]}"; do  
+                if [ "${modules[$i]}-${versions[$i]}" = "$(basename "$dir")" ]; then
+                    found=true
+                    break
+                fi
+            done
+            if [ "$found" = false  ]; then
+                echo "Removing unused module $dir"
+                rm -rf "$dir"
             fi
         done
-        if [ "$found" = false  ]; then
-            echo "Removing unused module $dir"
-            rm -rf "$dir"
-        fi
-    done
-
+    fi
 }
 ##### Cleanmodules #####
 
@@ -592,6 +593,7 @@ function listmodules {
 
 top="$(pwd)"  #top default path is "."
 verbose="/dev/null"  #verbosity: default=non verbose
+removeubin=0	      #removed unused modules: default false
 programname="$(basename "$0")"
 
 usage() { 
@@ -613,6 +615,7 @@ usage() {
     echo " - -C <path>     - where to install modules"
     echo " - -j <n>        - parallel jobs on make"
     echo " - -v            - enable verbose mode"
+    echo " - -r            - removed unused binary from install folder"
     echo ""
     exit 1; 
 }
@@ -630,7 +633,7 @@ if [ "$command" == "version" ]; then
 fi
 
 # parse optional argument [-C <top>]
-while getopts ":C:j:v" o; do
+while getopts ":C:j:v:r" o; do
     case "${o}" in
         C)
             top="$(realpath "${OPTARG}")"  #save absolute path in top
@@ -639,6 +642,8 @@ while getopts ":C:j:v" o; do
             export MAKEFLAGS="-j$OPTARG"
             ;;
         v)  verbose="/dev/stdout" #more verbose
+            ;;
+        r)  removeubin=1 #remove unused binary from target folder
             ;;
         *)
             echo "Wrong optional argument"
