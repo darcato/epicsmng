@@ -19,7 +19,7 @@
 #module_dbd=""          - the dbd files provided by the module, to be set in myApp/src/Makefile
 #module_libs=""         - the libs files provided by the module, to be set in myApp/src/Makefile
 
-base_url="https://git.launchpad.net/epics-base"
+base_url="https://github.com/epics-base/epics-base"
 base_requires=""
 base_optionals=""
 base_dbd="base.dbd"

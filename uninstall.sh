@@ -1,9 +1,23 @@
 #!/usr/bin/env bash
 
-#Uninstalling from local folder on HOME
-dest="$HOME/.local/bin"
-share="$HOME/.local/share/epicsmng/"
-completion_dir="$HOME/.bash_completion.d/"
+#Path locations
+dest="/usr/local/bin"
+share="/usr/local/share/epicsmng"
+src="$share/src"
+configdir="/etc/epicsmng"
+completion_dir="/etc/bash_completion.d"
+settingsdir="$configdir/settings"
+patchesdir="$configdir/patches"
+
+if [[ $UID != 0 ]]; then
+    #Path locations
+    dest="$HOME/.local/bin"
+    share="$HOME/.local/share/epicsmng"
+    configdir="$HOME/.config/epicsmng"
+    completion_dir="$HOME/.bash_completion.d"
+    settingsdir="$configdir/settings"
+    patchesdir="$configdir/patches"
+fi
 
 #Remove executable
 echo "Removing epicsmng..."

@@ -5,16 +5,18 @@
 # Davide Marcato - Damiano Bortolato 2018
 
 # default locations
-share="$HOME/.local/share/epicsmng"
+share="_SHARE_DIR_"
 src="$share/src"
-configdir="$HOME/.config/epicsmng"
+configdir="_CONF_DIR_"
 settingsdir="$configdir/settings"
 patchesdir="$configdir/patches"
 version="_VERSION_"
 
-if ! install -d "$src"; then
-    echo "ERROR: cannot create source directory $src"
-    exit 1
+if [ ! -d "$src" ]; then
+    if ! install -d "$src"; then
+        echo "ERROR: Cannot create source directory $src"
+        exit 1
+    fi
 fi
 
 #source config files
