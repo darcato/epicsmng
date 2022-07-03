@@ -5,13 +5,13 @@ release="v2.5.0-release"
 #Path locations
 dest="/usr/local/bin"
 share="/usr/local/share/epicsmng"
-src="$share/src"
 configdir="/etc/epicsmng"
 completion_dir="/etc/bash_completion.d"
 settingsdir="$configdir/settings"
 patchesdir="$configdir/patches"
 
 if [[ $UID != 0 ]]; then
+    echo "Installing as user: $USER"
     #Path locations
     dest="$HOME/.local/bin"
     share="$HOME/.local/share/epicsmng"
@@ -20,6 +20,8 @@ if [[ $UID != 0 ]]; then
     settingsdir="$configdir/settings"
     patchesdir="$configdir/patches"
 fi
+
+src="$share/src"
 
 # cd to repository folder
 cd "$(dirname "$0")" || exit 1
@@ -82,7 +84,7 @@ if ! install -d "$patchesdir"; then
 fi
 
 if ! install -m 777 -d "$share"; then
-    echo "ERROR: cannot create source directory $share"
+    echo "ERROR: cannot create share directory $share"
     exit 1
 fi
 
