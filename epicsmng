@@ -255,6 +255,9 @@ function compile_git {
     
     cd "$src"/"$module" || return 1
     set_site 'INSTALL_LOCATION' "$dest"
+    if [ "$tirpc" -eq "1" ] && [ "$module" = "asyn" ]; then
+        set_site 'TIRPC' 'YES'
+    fi
 
     truncate -s 0 configure/RELEASE
 
@@ -596,6 +599,7 @@ function listmodules {
 top="$(pwd)"  #top default path is "."
 verbose="/dev/null"  #verbosity: default=non verbose
 removeubin=0	      #removed unused modules: default false
+tirpc=0	      #use tirpc: default false
 programname="$(basename "$0")"
 
 usage() { 
@@ -618,6 +622,7 @@ usage() {
     echo " - -j <n>        - parallel jobs on make"
     echo " - -v            - enable verbose mode"
     echo " - -r            - removed unused binary from install folder"
+    echo " - -t            - use tirpc"
     echo ""
     exit 1; 
 }
@@ -635,7 +640,7 @@ if [ "$command" == "version" ]; then
 fi
 
 # parse optional argument [-C <top>]
-while getopts ":C:j:vr" o; do
+while getopts ":C:j:vrt" o; do
     case "${o}" in
         C)
             top="$(realpath "${OPTARG}")"  #save absolute path in top
@@ -646,6 +651,8 @@ while getopts ":C:j:vr" o; do
         v)  verbose="/dev/stdout" #more verbose
             ;;
         r)  removeubin=1 #remove unused binary from target folder
+            ;;
+        t)  tirpc=1 #use tirpc
             ;;
         *)
             echo "Wrong optional argument"
