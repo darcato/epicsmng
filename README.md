@@ -49,7 +49,7 @@ The compiled binaries, libraries, dbd etc. are installed in the ```./modules/myc
 
 4) Enjoy!
 
-To remove it: ```sh uninstall.sh```
+To remove it: ```./uninstall.sh```
 
 ## Commands
 
