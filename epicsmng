@@ -570,7 +570,7 @@ function listmodules {
     for ((i=0;i<total;i++)); do
         url=$(echo "${tobelisted[$i]}" | grep -o -e "[^=]*$")
         listing="$(echo "${tobelisted[$i]}" | grep -o -e "^[^_]*")"
-        tags="$(git ls-remote -t "$url" 2>/dev/null | awk '{print $2}' | cut -d '/' -f 3 \
+        tags="$(timeout 5s git ls-remote -t "$url" 2>/dev/null | awk '{print $2}' | cut -d '/' -f 3 \
             | cut -d '^' -f 1 | uniq | grep -oe "^\([A-Za-z]\)\?\([\.-]\)\?\([0-9]\)\+\([\.-]\)\+.*" \
             | sort -r --version-sort | head -n 5 | awk -vORS=" " '{ print $1 }' | awk '$1=$1' FS=" " OFS="~")"
         if [ ! "$tags" ]; then
