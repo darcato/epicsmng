@@ -55,7 +55,7 @@ To remove it: ```./uninstall.sh```
 
 + ```epicsmng makemodules [-C <path>] [-j<n>] [-v] [-r] [-t]  <conf_file>```
    
-   This command download modules sources, configures them and install in ```<path>/modules/<configname>``` where the path is the one specified by ```-C``` option (with default value the folder where the script is executed) and ```<configname>``` is the name of the configuration file. The ```-j``` option is used to enable multithread compilation, so ```-j5``` will use 5 thread to speed up the compilation process. The ```-v``` option let the user print more verbose output, ```-r``` removes unused binaries and ```-r``` sets ```TIRPC=YES``` to build asyn on newer linux distributions.
+   This command download modules sources, configures them and install in ```<path>/modules/<configname>``` where the path is the one specified by ```-C``` option (with default value the folder where the script is executed) and ```<configname>``` is the name of the configuration file. The ```-j``` option is used to enable multithread compilation, so ```-j5``` will use 5 thread to speed up the compilation process. The ```-v``` option let the user print more verbose output, ```-r``` removes unused binaries and ```-t``` sets ```TIRPC=YES``` to build asyn on newer linux distributions.
 
 + ```epicsmng cleanmodules [-C <path>]  <conf_file>```
    
