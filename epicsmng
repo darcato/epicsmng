@@ -20,6 +20,7 @@ if [ ! -d "$src" ]; then
 fi
 
 #source config files
+# shellcheck source=./utils/default.settings
 source "$configdir/default.settings"
 for file in "$settingsdir"/*; do
   if [[ -f "$file" ]]; then
@@ -559,7 +560,7 @@ function listmodules {
     for ((i=0;i<total;i++)); do
         url=$(echo "${tobelisted[$i]}" | grep -o -e "[^=]*$")
         listing="$(echo "${tobelisted[$i]}" | grep -o -e "^[^_]*")"
-        output[$((i+3))]="$listing~|~\n"
+        output[i+3]="$listing~|~\n"
     done
     # Print all modules names
     echo -e "$(printf '%s' "${output[@]}")" | column -t -s "~"
@@ -576,7 +577,7 @@ function listmodules {
         if [ ! "$tags" ]; then
             tags="-"
         fi
-        output[$((i+3))]="$listing~|~$tags\n"
+        output[i+3]="$listing~|~$tags\n"
         
         # Reprint all output (with added tags)
         tput cuu $(( total + 4 )) # go up in terminal
@@ -730,7 +731,6 @@ listmodules)
 *)
 	echo "Unknown command '$command'"
 	usage
-	exit 1
 	;;
 esac
 echo "--- Completed ---"
